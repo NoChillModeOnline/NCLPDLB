@@ -376,6 +376,29 @@ Expected:
 
 ---
 
+## 🚀 Easy Launch Options
+
+### Option 1: Desktop Shortcut (EASIEST)
+1. Double-click `create_desktop_shortcut.bat`
+2. A shortcut appears on your desktop
+3. Double-click the desktop shortcut to start the bot!
+
+### Option 2: Batch File
+1. Double-click `run_bot.bat` in the bot folder
+2. Bot starts automatically
+
+### Option 3: Build Standalone EXE
+1. Follow instructions in `BUILD_EXECUTABLE.md`
+2. Creates `PokemonDraftBot.exe` that runs without Python
+
+### Option 4: Command Line (Traditional)
+```bash
+cd "F:\Claude Code\Claude\Claude Chats\pokemon-draft-bot"
+python bot.py
+```
+
+---
+
 ## 🎯 Next Steps After Deployment
 
 1. **Add Pokémon Data**
