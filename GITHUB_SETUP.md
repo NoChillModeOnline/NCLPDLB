@@ -1,378 +1,358 @@
-# 🚀 GitHub Repository Setup Guide
+# 🚀 GitHub Setup - Quick Start Guide
 
-## Step 1: Create GitHub Repository
-
-### **Option A: Via GitHub Website**
-
-1. Go to: https://github.com/new
-2. **Repository name:** `pokemon-draft-league-bot`
-3. **Description:** "Complete Pokemon Draft League Discord Bot with web dashboard, team analysis, and Tera Captain system"
-4. **Visibility:** Public (or Private if preferred)
-5. **DO NOT** initialize with README (we already have one)
-6. Click **"Create repository"**
-
-### **Option B: Via GitHub CLI**
-
-```bash
-gh repo create pokemon-draft-league-bot --public --description "Pokemon Draft League Discord Bot with web dashboard"
-```
+**Easy setup for hosting your Pokemon Draft League Bot on GitHub (Private Repository)**
 
 ---
 
-## Step 2: Link Local Repository to GitHub
+## ⚡ Quick Setup (5 Minutes)
 
-Your local repository is already initialized. Now connect it to GitHub:
+### Option 1: Use the Interactive Setup Wizard (Recommended)
+
+The easiest way - just double-click a file!
+
+1. **Open:** `COMPLETE_SETUP.bat` (or `SETUP_GITHUB_LOGIN.bat`)
+2. **Follow the wizard** - it opens everything you need
+3. **Done!** Your code is on GitHub
+
+### Option 2: Manual Setup (Follow Steps Below)
+
+Use this if you prefer more control or are on Mac/Linux.
+
+---
+
+## 📋 Step-by-Step Manual Setup
+
+### Step 1: Create Your GitHub Account (If Needed)
+
+1. Go to https://github.com/join
+2. Sign up for free
+3. Verify your email
+
+---
+
+### Step 2: Create a Private Repository
+
+**Via GitHub Website:**
+
+1. Go to https://github.com/new
+2. Fill in:
+   - **Repository name:** `pokemon-draft-league-bot` (or any name you prefer)
+   - **Description:** "My Pokemon Draft League Discord Bot"
+   - **Visibility:** ✅ **Private** (keeps your code and credentials hidden)
+   - **DO NOT** check "Initialize with README" (we already have one)
+3. Click **"Create repository"**
+
+**Why Private?**
+- ✅ Keeps your bot configuration private
+- ✅ Protects your setup from public access
+- ✅ Free for unlimited private repositories
+- ✅ You can always make it public later if desired
+
+---
+
+### Step 3: Connect Your Local Code to GitHub
+
+**Windows Users:**
+
+Open PowerShell or Command Prompt in your bot folder:
 
 ```bash
 cd "F:\Claude Code\Claude\Claude Chats\pokemon-draft-bot"
 
-# Add GitHub as remote origin
+# Add GitHub as your remote repository
 git remote add origin https://github.com/YOUR_USERNAME/pokemon-draft-league-bot.git
 
-# Verify remote was added
-git remote -v
-
-# Push to GitHub
+# Push your code to GitHub
 git push -u origin master
 ```
 
-**Replace `YOUR_USERNAME` with your actual GitHub username!**
+**Mac/Linux Users:**
+
+```bash
+cd /path/to/pokemon-draft-bot
+
+# Add GitHub as your remote repository
+git remote add origin https://github.com/YOUR_USERNAME/pokemon-draft-league-bot.git
+
+# Push your code to GitHub
+git push -u origin master
+```
+
+**⚠️ Important:** Replace `YOUR_USERNAME` with your actual GitHub username!
 
 ---
 
-## Step 3: Verify Push
+### Step 4: Authenticate (First Time Only)
 
-Check your GitHub repository at:
-```
-https://github.com/YOUR_USERNAME/pokemon-draft-league-bot
+When you push for the first time, GitHub will ask you to log in.
+
+**Option A: GitHub CLI (Recommended)**
+
+```bash
+# Install GitHub CLI: https://cli.github.com/
+gh auth login
 ```
 
-You should see:
-- ✅ 11 commits
-- ✅ 51 files
-- ✅ README.md displayed on homepage
-- ✅ All documentation files
-- ✅ Complete codebase
+**Option B: Personal Access Token**
+
+1. Go to https://github.com/settings/tokens
+2. Click **"Generate new token (classic)"**
+3. Give it a name: "Pokemon Bot"
+4. Select scopes: ✅ `repo` (full control)
+5. Click **"Generate token"**
+6. Copy the token (you'll only see it once!)
+7. Use it as your password when git prompts you
 
 ---
 
-## Step 4: Add GitHub Topics
+### Step 5: Verify Your Upload
 
-Make your repository discoverable by adding topics:
+1. Go to https://github.com/YOUR_USERNAME/pokemon-draft-league-bot
+2. You should see:
+   - ✅ Your README displayed
+   - ✅ All your code files
+   - ✅ Documentation folder
+   - ✅ 🔒 **Private** label (repository is hidden from others)
+
+---
+
+## 🔒 Privacy & Security
+
+### What's Private?
+
+When your repository is **Private**:
+- ✅ Only you can see the code
+- ✅ Only people you invite can access it
+- ✅ Your bot tokens stay hidden
+- ✅ Your Google Sheets ID stays hidden
+
+### What About .credentials.json?
+
+Don't worry! Your `.credentials.json` file is **automatically excluded** by `.gitignore`:
+
+```gitignore
+# Sensitive files (NEVER pushed to GitHub)
+.credentials.json
+.env
+*.env
+service-account.json
+```
+
+**These files will NEVER be uploaded to GitHub!** ✅
+
+---
+
+## 👥 Sharing Your Bot (Optional)
+
+### Invite Collaborators
+
+To let others help develop your bot:
 
 1. Go to your repository on GitHub
-2. Click **"Add topics"** (near the top)
-3. Add these topics:
-   ```
-   discord-bot
-   pokemon
-   draft-league
-   flask
-   python
-   discord-py
-   google-sheets
-   competitive-pokemon
-   vgc
-   tera-captains
-   web-dashboard
-   ```
+2. Click **Settings** → **Collaborators**
+3. Click **"Add people"**
+4. Enter their GitHub username
+5. They'll get an email invitation
+
+### Make Repository Public (If Desired)
+
+Want to share with everyone?
+
+1. Go to **Settings** → **Danger Zone**
+2. Click **"Change visibility"**
+3. Choose **"Make public"**
+4. Type the repository name to confirm
+
+**⚠️ Before making public:**
+- ✅ Double-check `.credentials.json` is in `.gitignore`
+- ✅ Remove any API keys from code
+- ✅ Remove any sensitive information
 
 ---
 
-## Step 5: Create GitHub Releases (Optional)
+## 🔄 Keeping Your Repository Updated
 
-### **Tag Current Version**
+### After Making Changes
 
 ```bash
-# Create version tag
-git tag -a v1.0.0 -m "Version 1.0.0 - Initial Release
-
-Features:
-- Complete Discord bot with 4 cogs
-- Web dashboard with Flask
-- Team analysis and Tera Captain system
-- Performance optimizations (60-75% faster)
-- Interactive setup wizard
-- Comprehensive documentation (15 guides)
-- 100% test coverage"
-
-# Push tag to GitHub
-git push origin v1.0.0
-```
-
-### **Create Release on GitHub**
-
-1. Go to your repository → **Releases** → **Draft a new release**
-2. Choose tag: `v1.0.0`
-3. Release title: `v1.0.0 - Initial Release`
-4. Description: Copy from below
-5. Click **"Publish release"**
-
-**Release Description Template:**
-
-```markdown
-# 🎉 Pokemon Draft League Bot v1.0.0
-
-Complete Discord bot for managing Pokemon Draft Leagues with a beautiful web dashboard!
-
-## ✨ Features
-
-### Discord Bot
-- 🎮 **League Management** - Initialize leagues, register coaches, upload logos
-- 📝 **Draft System** - Interactive snake draft with point-based budgeting
-- ⚡ **Tera Captains** - Manage 3 Tera Captains per team (19 types including Stellar)
-- 📊 **Team Analysis** - Type coverage, weaknesses, Tera suggestions, speed tiers
-- 💬 **Private DM Analysis** - Send detailed analysis privately to players
-- 🏆 **Standings & Matches** - Track wins/losses and league rankings
-
-### Web Dashboard
-- 🌐 **Beautiful UI** - Responsive design with Tailwind CSS
-- 📈 **Real-time Stats** - Auto-refreshing dashboard
-- 👥 **Teams Page** - Browse all teams with logos and records
-- 🏁 **Live Draft View** - Monitor draft progress
-- 🔌 **REST API** - 8 endpoints for data integration
-
-### Developer Features
-- ⚙️ **Interactive Setup** - Wizard for easy configuration
-- 🚀 **Multiple Launch Options** - Batch files, shortcuts, Python
-- ⚡ **Performance Optimized** - 60-75% faster with caching
-- 🧪 **Comprehensive Tests** - 100% test coverage
-- 📚 **Extensive Documentation** - 15 guides (12,000+ lines)
-
-## 📊 Stats
-
-- **Lines of Code:** ~10,000+
-- **Documentation:** ~12,000+ lines
-- **Test Coverage:** 100% (3 test suites)
-- **Files:** 51
-- **Commits:** 11
-
-## 🚀 Quick Start
-
-```bash
-# Clone repository
-git clone https://github.com/YOUR_USERNAME/pokemon-draft-league-bot.git
-cd pokemon-draft-league-bot
-
-# Run interactive setup
-python setup_bot.py
-
-# Start bot
-python bot.py
-
-# Start web dashboard
-python web_server.py
-```
-
-## 📚 Documentation
-
-- [README.md](README.md) - Complete overview
-- [QUICK_START.md](QUICK_START.md) - 10-minute setup
-- [DEPLOYMENT_CHECKLIST.md](DEPLOYMENT_CHECKLIST.md) - Step-by-step deployment
-- [WEB_DASHBOARD_GUIDE.md](WEB_DASHBOARD_GUIDE.md) - Web frontend guide
-- [OPTIMIZATION_NOTES.md](OPTIMIZATION_NOTES.md) - Performance details
-- Plus 10 more guides!
-
-## 🎯 Requirements
-
-- Python 3.8+
-- Discord Bot Token
-- Google Sheets API credentials
-- Flask (for web dashboard)
-
-## 🤝 Contributing
-
-Contributions welcome! Please read the documentation first.
-
-## 📝 License
-
-MIT License - See LICENSE file for details
-
-## 🙏 Credits
-
-Built for the competitive Pokemon community with ❤️
-
----
-
-**Full Changelog:** https://github.com/YOUR_USERNAME/pokemon-draft-league-bot/commits/v1.0.0
-```
-
----
-
-## Step 6: Add Repository Badges
-
-Add badges to your README.md for a professional look:
-
-```markdown
-# Pokemon Draft League Bot
-
-[![Python](https://img.shields.io/badge/Python-3.8+-blue.svg)](https://www.python.org/)
-[![Discord.py](https://img.shields.io/badge/Discord.py-2.6.4-blue.svg)](https://discordpy.readthedocs.io/)
-[![Flask](https://img.shields.io/badge/Flask-3.0.0-green.svg)](https://flask.palletsprojects.com/)
-[![License](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
-[![Tests](https://img.shields.io/badge/Tests-Passing-brightgreen.svg)](TESTING.md)
-[![Status](https://img.shields.io/badge/Status-Production--Ready-success.svg)](FINAL_STATUS.md)
-
-Your README content here...
-```
-
----
-
-## Step 7: Set Up GitHub Pages (Optional)
-
-Host your documentation on GitHub Pages:
-
-1. Go to repository **Settings** → **Pages**
-2. Source: **Deploy from a branch**
-3. Branch: **master** → **/docs** (if you create a docs folder)
-4. Click **Save**
-5. Your docs will be at: `https://YOUR_USERNAME.github.io/pokemon-draft-league-bot/`
-
----
-
-## Step 8: Enable GitHub Features
-
-### **Issues**
-Enable issue tracking for bug reports and feature requests:
-1. Go to **Settings** → **Features**
-2. Check **Issues**
-3. Add issue templates (optional)
-
-### **Discussions**
-Enable discussions for community support:
-1. Go to **Settings** → **Features**
-2. Check **Discussions**
-
-### **Wiki**
-Enable wiki for extended documentation:
-1. Go to **Settings** → **Features**
-2. Check **Wiki**
-
----
-
-## Step 9: Add .github Folder (Optional)
-
-Create templates for better collaboration:
-
-```bash
-mkdir .github
-cd .github
-
-# Create issue template
-mkdir ISSUE_TEMPLATE
-```
-
-**Bug Report Template** (`.github/ISSUE_TEMPLATE/bug_report.md`):
-```markdown
----
-name: Bug Report
-about: Report a bug or issue
-title: '[BUG] '
-labels: bug
-assignees: ''
----
-
-**Describe the bug**
-A clear description of what the bug is.
-
-**To Reproduce**
-Steps to reproduce the behavior.
-
-**Expected behavior**
-What you expected to happen.
-
-**Environment:**
-- OS: [e.g., Windows 11]
-- Python Version: [e.g., 3.11]
-- Bot Version: [e.g., 1.0.0]
-
-**Additional context**
-Any other information about the problem.
-```
-
----
-
-## Step 10: Update README with GitHub Link
-
-Add this to your README.md:
-
-```markdown
-## 🔗 Repository
-
-GitHub: [https://github.com/YOUR_USERNAME/pokemon-draft-league-bot](https://github.com/YOUR_USERNAME/pokemon-draft-league-bot)
-
-## ⭐ Star the Repository
-
-If you find this bot useful, please give it a star on GitHub!
-```
-
----
-
-## 📋 Complete Setup Checklist
-
-- [ ] Create GitHub repository
-- [ ] Link local repo to GitHub (`git remote add origin`)
-- [ ] Push code to GitHub (`git push -u origin master`)
-- [ ] Add repository topics
-- [ ] Create v1.0.0 tag and release
-- [ ] Add badges to README
-- [ ] Enable Issues/Discussions
-- [ ] (Optional) Set up GitHub Pages
-- [ ] (Optional) Add issue templates
-- [ ] Update README with GitHub link
-
----
-
-## 🎉 Done!
-
-Your Pokemon Draft League Bot is now on GitHub!
-
-**Repository URL Format:**
-```
-https://github.com/YOUR_USERNAME/pokemon-draft-league-bot
-```
-
-**Clone URL for Others:**
-```
-git clone https://github.com/YOUR_USERNAME/pokemon-draft-league-bot.git
-```
-
----
-
-## 💡 Tips
-
-### **Keep Repository Updated**
-
-```bash
-# After making changes
+# Stage all changes
 git add -A
-git commit -m "Your commit message"
+
+# Commit with a descriptive message
+git commit -m "Add new feature"
+
+# Push to GitHub
 git push origin master
 ```
 
-### **Create Branches for Features**
+### Pull Latest Changes (From Another Computer)
 
 ```bash
-# Create feature branch
-git checkout -b feature/new-feature
-
-# Work on feature...
-git add -A
-git commit -m "Add new feature"
-
-# Push branch
-git push origin feature/new-feature
-
-# Create Pull Request on GitHub
+# Download latest version
+git pull origin master
 ```
-
-### **Protect Master Branch**
-
-1. Go to **Settings** → **Branches**
-2. Add rule for `master`
-3. Require pull request reviews
-4. Require status checks
 
 ---
 
-**Your repository is now ready to share with the world!** 🚀
+## 📱 Using GitHub on Multiple Computers
+
+### Computer 1 (Initial Setup)
+Already done! Your code is on GitHub.
+
+### Computer 2 (Clone Repository)
+
+```bash
+# Clone your private repository
+git clone https://github.com/YOUR_USERNAME/pokemon-draft-league-bot.git
+cd pokemon-draft-league-bot
+
+# Install dependencies
+pip install -r requirements.txt
+
+# Add your credentials
+python setup_bot.py
+```
+
+**Note:** You'll need to authenticate with GitHub CLI or Personal Access Token.
+
+---
+
+## 🔧 Advanced: Using SSH Instead of HTTPS
+
+More secure and no password prompts!
+
+### Setup SSH Keys
+
+1. Generate SSH key:
+   ```bash
+   ssh-keygen -t ed25519 -C "your_email@example.com"
+   ```
+
+2. Add to GitHub:
+   - Copy your public key: `cat ~/.ssh/id_ed25519.pub`
+   - Go to https://github.com/settings/keys
+   - Click **"New SSH key"**
+   - Paste and save
+
+3. Change remote URL:
+   ```bash
+   git remote set-url origin git@github.com:YOUR_USERNAME/pokemon-draft-league-bot.git
+   ```
+
+Now you can push/pull without entering credentials!
+
+---
+
+## 🆘 Troubleshooting
+
+### "Remote already exists"
+
+```bash
+# Remove old remote
+git remote remove origin
+
+# Add new remote
+git remote add origin https://github.com/YOUR_USERNAME/pokemon-draft-league-bot.git
+```
+
+### "Authentication failed"
+
+- Use GitHub CLI: `gh auth login`
+- Or create a Personal Access Token (Step 4, Option B)
+- Make sure 2FA is set up if your account requires it
+
+### "Repository not found"
+
+- Check repository name matches exactly
+- Make sure you replaced `YOUR_USERNAME` with your actual username
+- If private, make sure you're logged in
+
+### "Push rejected"
+
+```bash
+# Pull first, then push
+git pull origin master --allow-unrelated-histories
+git push origin master
+```
+
+---
+
+## 📚 Quick Reference
+
+### View Repository Status
+```bash
+git status
+```
+
+### View Commit History
+```bash
+git log --oneline -10
+```
+
+### Check Remote URL
+```bash
+git remote -v
+```
+
+### Create a Backup Branch
+```bash
+git checkout -b backup-branch
+git push origin backup-branch
+```
+
+---
+
+## ✅ Setup Checklist
+
+Complete setup steps:
+
+- [ ] Create GitHub account (if needed)
+- [ ] Create **private** repository on GitHub
+- [ ] Connect local code to GitHub (`git remote add origin`)
+- [ ] Authenticate (GitHub CLI or Personal Access Token)
+- [ ] Push code to GitHub (`git push -u origin master`)
+- [ ] Verify code uploaded successfully
+- [ ] Confirm `.credentials.json` is NOT in repository
+- [ ] (Optional) Invite collaborators
+- [ ] (Optional) Clone on additional computers
+
+---
+
+## 🎉 You're Done!
+
+Your bot is now safely stored on GitHub!
+
+**Your Private Repository:**
+```
+https://github.com/YOUR_USERNAME/pokemon-draft-league-bot
+```
+
+**Benefits:**
+- ✅ Code backed up safely
+- ✅ Access from any computer
+- ✅ Version history saved
+- ✅ Easy collaboration
+- ✅ Free forever (private repositories are free!)
+
+---
+
+## 💡 Next Steps
+
+1. **Set up the bot:** Run `setup_bot.py` to configure credentials
+2. **Test locally:** Run `run_bot.bat` to test the bot
+3. **Deploy (optional):** Follow `DEPLOYMENT_GUIDE.md` for hosting online
+
+---
+
+## 🔗 Helpful Links
+
+- [GitHub Docs](https://docs.github.com/)
+- [Git Basics](https://git-scm.com/book/en/v2/Getting-Started-Git-Basics)
+- [GitHub CLI](https://cli.github.com/)
+- [Personal Access Tokens](https://docs.github.com/en/authentication/keeping-your-account-and-data-secure/creating-a-personal-access-token)
+
+---
+
+**Questions?** Check the troubleshooting section above or open an issue in your repository!
+
+**Need help with bot setup?** See `QUICK_START.md` and `README.md`

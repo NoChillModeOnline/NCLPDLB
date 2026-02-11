@@ -45,12 +45,12 @@ echo.
 echo Opening repository creation page...
 echo.
 echo Please configure:
-echo   Repository name: pokemon-draft-league-bot
-echo   Description: Complete Pokemon Draft League Discord Bot with web dashboard
-echo   Visibility: Public (recommended)
+echo   Repository name: pokemon-draft-league-bot (or your preferred name)
+echo   Description: My Pokemon Draft League Discord Bot
+echo   Visibility: PRIVATE (recommended - keeps your code secure)
 echo
 echo   IMPORTANT: Do NOT check "Initialize with README"
-echo   IMPORTANT: License: Choose "MIT License" from dropdown
+echo   IMPORTANT: Do NOT add a license (we already have MIT License)
 echo.
 echo Then click "Create repository"
 echo.
