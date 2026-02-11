@@ -8,7 +8,6 @@ import discord
 from discord.ext import commands
 from typing import Optional
 
-from services.sheets_service import SheetsService
 from services.tera_service import TeraService
 from utils.constants import (
     EMBED_COLOR_SUCCESS,
@@ -19,7 +18,6 @@ from utils.constants import (
     DEFAULT_MAX_TERA_CAPTAIN_COST,
     DEFAULT_MAX_TERA_TOTAL_POINTS
 )
-from config import Config
 
 
 class Tera(commands.Cog):
@@ -28,12 +26,8 @@ class Tera(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
 
-        # Initialize services
-        config = Config()
-        self.sheets = SheetsService(
-            credentials_path=config.credentials_path,
-            spreadsheet_id=config.spreadsheet_id
-        )
+        # Use shared SheetsService instance from bot (optimization)
+        self.sheets = bot.sheets
         self.tera_service = TeraService(self.sheets)
 
     # ==================== BASE COMMAND ====================

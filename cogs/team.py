@@ -9,10 +9,8 @@ Handles all team-related commands:
 
 import discord
 from discord.ext import commands
-from services.sheets_service import SheetsService
 from services.team_validator import TeamValidator
 from utils.constants import EMBED_COLOR_INFO, EMBED_COLOR_SUCCESS, EMBED_COLOR_WARNING, TYPE_EMOJI
-import config
 
 
 class Team(commands.Cog):
@@ -20,7 +18,8 @@ class Team(commands.Cog):
 
     def __init__(self, bot):
         self.bot = bot
-        self.sheets = SheetsService(config.CONFIG['spreadsheet_id'])
+        # Use shared SheetsService instance from bot (optimization)
+        self.sheets = bot.sheets
         self.validator = TeamValidator(self.sheets)
 
     @commands.group(name='team', invoke_without_command=True)

@@ -10,7 +10,6 @@ from discord.ext import commands
 import asyncio
 from typing import Optional
 
-from services.sheets_service import SheetsService
 from services.discord_service import DiscordService
 from services.error_diagnostics import ErrorDiagnostics
 from utils.constants import (
@@ -21,7 +20,6 @@ from utils.constants import (
     DEFAULT_MIN_POKEMON,
     DEFAULT_MAX_POKEMON
 )
-from config import Config
 
 
 class League(commands.Cog):
@@ -30,12 +28,8 @@ class League(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
 
-        # Initialize services
-        config = Config()
-        self.sheets = SheetsService(
-            credentials_path=config.credentials_path,
-            spreadsheet_id=config.spreadsheet_id
-        )
+        # Use shared SheetsService instance from bot (optimization)
+        self.sheets = bot.sheets
         self.discord_service = DiscordService(bot)
         self.diagnostics = ErrorDiagnostics(self.sheets)
 

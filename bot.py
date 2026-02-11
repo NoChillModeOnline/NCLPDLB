@@ -22,8 +22,10 @@ from typing import List
 from config import (
     DISCORD_TOKEN,
     COMMAND_PREFIX,
-    BOT_DESCRIPTION
+    BOT_DESCRIPTION,
+    CONFIG
 )
+from services.sheets_service import SheetsService
 
 
 class PokemonDraftBot(commands.Bot):
@@ -43,6 +45,9 @@ class PokemonDraftBot(commands.Bot):
             intents=intents,
             help_command=commands.DefaultHelpCommand()
         )
+
+        # Shared SheetsService instance (optimization: reduces memory & API connections)
+        self.sheets = SheetsService(CONFIG['spreadsheet_id'])
 
     async def setup_hook(self):
         """

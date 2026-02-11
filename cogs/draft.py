@@ -10,7 +10,6 @@ from discord.ext import commands
 import asyncio
 from typing import Optional
 
-from services.sheets_service import SheetsService
 from services.draft_service import DraftService
 from utils.constants import (
     EMBED_COLOR_SUCCESS,
@@ -22,7 +21,6 @@ from utils.constants import (
     DEFAULT_MAX_POKEMON,
     PICK_TIMEOUT_SECONDS
 )
-from config import Config
 
 
 class Draft(commands.Cog):
@@ -31,12 +29,8 @@ class Draft(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
 
-        # Initialize services
-        config = Config()
-        self.sheets = SheetsService(
-            credentials_path=config.credentials_path,
-            spreadsheet_id=config.spreadsheet_id
-        )
+        # Use shared SheetsService instance from bot (optimization)
+        self.sheets = bot.sheets
         self.draft_service = DraftService(self.sheets)
 
     # ==================== DRAFT INITIALIZATION ====================
