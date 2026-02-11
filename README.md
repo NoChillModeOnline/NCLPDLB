@@ -321,6 +321,36 @@ setup_and_run.bat
 
 ---
 
+## ☁️ Cloud Deployment
+
+### Deploy to Azure (Microsoft Cloud)
+
+Deploy your bot to Azure App Service for 24/7 hosting!
+
+**Quick Deploy:**
+```bash
+# Deploy to Azure (Free tier available)
+az webapp up --name pokemon-draft-bot --runtime PYTHON:3.11
+```
+
+**Features:**
+- ✅ Free tier available (F1)
+- ✅ Auto-scaling
+- ✅ Global availability
+- ✅ Azure Key Vault integration
+- ✅ PostgreSQL database option
+- ✅ CI/CD with GitHub Actions
+
+**Options:**
+- **App Service** - $0-13/month (F1 free, B1 basic)
+- **Azure Functions** - Serverless, pay-per-use
+- **Container Instances** - Docker deployment
+- **PostgreSQL** - Upgrade from Sheets ($12+/month)
+
+**See:** `AZURE_DEPLOYMENT.md` for complete Azure deployment guide!
+
+---
+
 ## Troubleshooting
 
 ### Bot doesn't respond

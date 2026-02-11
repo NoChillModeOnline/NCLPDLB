@@ -1,0 +1,32 @@
+# Pokemon Draft League Bot - Azure Requirements
+# Enhanced requirements for Azure deployment
+
+# Discord Bot
+discord.py==2.6.4
+
+# Google Sheets Integration
+gspread==6.1.4
+google-auth==2.37.0
+
+# Web Dashboard
+Flask==3.1.0
+Flask-Cors==5.0.0
+
+# Azure SDK (Optional - for Azure services)
+azure-identity==1.19.0
+azure-storage-blob==12.24.0
+azure-keyvault-secrets==4.9.0
+
+# Database (if migrating from Sheets)
+psycopg2-binary==2.9.10
+
+# Production Server
+gunicorn==23.0.0
+
+# Monitoring & Logging
+opencensus-ext-azure==1.1.13
+applicationinsights==0.11.10
+
+# Utilities
+python-dotenv==1.0.1
+requests==2.32.3
