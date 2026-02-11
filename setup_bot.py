@@ -17,6 +17,13 @@ import sys
 import subprocess
 from pathlib import Path
 
+# Set UTF-8 encoding for Windows console
+if sys.platform == 'win32':
+    if hasattr(sys.stdout, 'reconfigure'):
+        sys.stdout.reconfigure(encoding='utf-8')
+    if hasattr(sys.stderr, 'reconfigure'):
+        sys.stderr.reconfigure(encoding='utf-8')
+
 def print_header(text):
     """Print a formatted header"""
     print('\n' + '='*70)
@@ -39,7 +46,7 @@ def get_input(prompt, required=True, default=''):
         value = input(full_prompt).strip() or default
 
         if required and not value:
-            print('❌ This field is required. Please enter a value.')
+            print('[X] This field is required. Please enter a value.')
             continue
 
         return value
@@ -70,9 +77,9 @@ def test_imports():
     for package in required_packages:
         try:
             __import__(package)
-            print(f'  ✅ {package}')
+            print(f'  [OK] {package}')
         except ImportError:
-            print(f'  ❌ {package} (not installed)')
+            print(f'  [X] {package} (not installed)')
             missing.append(package)
 
     return len(missing) == 0, missing
@@ -88,13 +95,13 @@ def install_dependencies():
             subprocess.check_call([
                 sys.executable, '-m', 'pip', 'install', '-r', 'requirements.txt'
             ])
-            print('✅ Dependencies installed successfully!')
+            print('[OK] Dependencies installed successfully!')
             return True
         except subprocess.CalledProcessError as e:
-            print(f'❌ Error installing dependencies: {e}')
+            print(f'[X] Error installing dependencies: {e}')
             return False
     else:
-        print('⚠️  Skipping dependency installation')
+        print('[!]  Skipping dependency installation')
         return True
 
 def setup_credentials():
@@ -177,10 +184,10 @@ def setup_full_credentials():
             return save_credentials(credentials)
 
         except FileNotFoundError:
-            print(f'❌ File not found: {json_path}')
+            print(f'[X] File not found: {json_path}')
             return False
         except json.JSONDecodeError:
-            print('❌ Invalid JSON file')
+            print('[X] Invalid JSON file')
             return False
     else:
         print('\nPaste your Google Service Account JSON content below.')
@@ -199,7 +206,7 @@ def setup_full_credentials():
             return save_credentials(credentials)
 
         except json.JSONDecodeError:
-            print('❌ Invalid JSON content')
+            print('[X] Invalid JSON content')
             return False
 
 def save_credentials(credentials):
@@ -208,24 +215,24 @@ def save_credentials(credentials):
 
     if os.path.exists(output_path):
         if not get_yes_no(f'{output_path} already exists. Overwrite?', default=False):
-            print('⚠️  Keeping existing credentials file')
+            print('[!]  Keeping existing credentials file')
             return True
 
     try:
         with open(output_path, 'w') as f:
             json.dump(credentials, f, indent=2)
 
-        print(f'\n✅ Credentials saved to {output_path}')
+        print(f'\n[OK] Credentials saved to {output_path}')
 
         # Set file permissions (Unix only)
         if os.name != 'nt':
             os.chmod(output_path, 0o600)
-            print('✅ File permissions set to 600 (owner read/write only)')
+            print('[OK] File permissions set to 600 (owner read/write only)')
 
         return True
 
     except Exception as e:
-        print(f'❌ Error saving credentials: {e}')
+        print(f'[X] Error saving credentials: {e}')
         return False
 
 def test_connection():
@@ -233,7 +240,7 @@ def test_connection():
     print_step(3, 'Testing Connection')
 
     if not os.path.exists('.credentials.json'):
-        print('❌ .credentials.json not found. Please complete setup first.')
+        print('[X] .credentials.json not found. Please complete setup first.')
         return False
 
     if get_yes_no('Test connection to Google Sheets?', default=True):
@@ -246,16 +253,16 @@ def test_connection():
                 creds = json.load(f)
 
             sheets = SheetsService('.credentials.json', creds['spreadsheet_id'])
-            print('✅ Successfully connected to Google Sheets!')
+            print('[OK] Successfully connected to Google Sheets!')
 
             # Try to get a config value
             league_name = sheets.get_config_value('league_name', 'Unknown')
-            print(f'✅ League name: {league_name}')
+            print(f'[OK] League name: {league_name}')
 
             return True
 
         except Exception as e:
-            print(f'❌ Connection test failed: {e}')
+            print(f'[X] Connection test failed: {e}')
             print('\nThis is normal if you haven\'t set up your Google Sheet yet.')
             print('Make sure to:')
             print('  1. Create a Google Sheet')
@@ -272,30 +279,30 @@ def main():
     print('This wizard will help you set up your Pokemon Draft League Bot.')
     print()
     print('You will need:')
-    print('  ✓ Discord Bot Token')
-    print('  ✓ Google Spreadsheet ID')
-    print('  ✓ Google Service Account JSON (optional now, required later)')
+    print('  * Discord Bot Token')
+    print('  * Google Spreadsheet ID')
+    print('  * Google Service Account JSON (optional now, required later)')
     print()
 
     if not get_yes_no('Ready to begin?', default=True):
-        print('\n👋 Setup cancelled. Run this script again when ready!')
+        print('\n[BYE] Setup cancelled. Run this script again when ready!')
         return
 
     # Step 1: Install dependencies
     if not install_dependencies():
-        print('\n❌ Setup failed at dependency installation')
+        print('\n[X] Setup failed at dependency installation')
         return
 
     # Test imports
     success, missing = test_imports()
     if not success:
-        print(f'\n❌ Missing packages: {", ".join(missing)}')
+        print(f'\n[X] Missing packages: {", ".join(missing)}')
         print('Please run: pip install -r requirements.txt')
         return
 
     # Step 2: Setup credentials
     if not setup_credentials():
-        print('\n❌ Setup failed at credentials configuration')
+        print('\n[X] Setup failed at credentials configuration')
         return
 
     # Step 3: Test connection (optional)
@@ -304,7 +311,7 @@ def main():
     # Final summary
     print_header('SETUP COMPLETE!')
 
-    print('✅ Your bot is configured and ready to run!')
+    print('[OK] Your bot is configured and ready to run!')
     print()
     print('Next steps:')
     print('  1. Make sure your Google Sheet is set up')
@@ -320,14 +327,14 @@ def main():
     print()
     print('For detailed instructions, see DEPLOYMENT_CHECKLIST.md')
     print()
-    print('🎮 Have fun running your Pokemon Draft League!')
+    print('[SUCCESS] Have fun running your Pokemon Draft League!')
 
 if __name__ == '__main__':
     try:
         main()
     except KeyboardInterrupt:
-        print('\n\n👋 Setup cancelled by user')
+        print('\n\n[BYE] Setup cancelled by user')
         sys.exit(0)
     except Exception as e:
-        print(f'\n❌ Unexpected error: {e}')
+        print(f'\n[X] Unexpected error: {e}')
         sys.exit(1)
