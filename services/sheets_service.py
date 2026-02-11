@@ -3,12 +3,19 @@ Google Sheets service for Pokemon Draft League Bot.
 
 Handles all interactions with Google Sheets API including reading/writing
 league data, draft history, team rosters, and match results.
+
+Optimizations:
+- Worksheet caching to reduce API calls
+- Pokemon data caching (5-minute TTL)
+- Config caching (10-minute TTL)
+- Batch operations for multiple updates
 """
 
 import gspread
 from google.oauth2.service_account import Credentials
 from typing import List, Dict, Optional
 from datetime import datetime
+import time
 
 
 class SheetsService:
@@ -32,7 +39,16 @@ class SheetsService:
         self.spreadsheet_id = spreadsheet_id
         self.client = None
         self.spreadsheet = None
-        self._worksheet_cache = {}
+
+        # Caching for performance
+        self._worksheet_cache: Dict = {}
+        self._pokemon_cache: Optional[Dict] = None
+        self._pokemon_cache_time: float = 0
+        self._pokemon_cache_ttl: int = 300  # 5 minutes
+
+        self._config_cache: Dict = {}
+        self._config_cache_time: float = 0
+        self._config_cache_ttl: int = 600  # 10 minutes
 
         self._connect()
 
@@ -88,7 +104,7 @@ class SheetsService:
 
     def get_config_value(self, key: str, default=None):
         """
-        Get a configuration value from Config sheet.
+        Get a configuration value from Config sheet with caching.
 
         Args:
             key: Configuration key to look up
@@ -98,38 +114,81 @@ class SheetsService:
             Configuration value or default
         """
         try:
-            sheet = self._get_worksheet("Config")
-            records = sheet.get_all_records()
+            # Check cache validity
+            current_time = time.time()
+            cache_age = current_time - self._config_cache_time
 
-            for record in records:
-                if record.get("Key") == key:
-                    return record.get("Value", default)
+            # Refresh cache if expired
+            if cache_age > self._config_cache_ttl or not self._config_cache:
+                sheet = self._get_worksheet('Config')
+                records = sheet.get_all_records()
+                self._config_cache = {record.get('Key'): record.get('Value') for record in records if 'Key' in record}
+                self._config_cache_time = current_time
+                print(f'📋 Config cache refreshed ({len(self._config_cache)} entries)')
 
-            return default
+            return self._config_cache.get(key, default)
+
         except Exception as e:
             print(f"⚠️ Error getting config value '{key}': {e}")
             return default
 
+    def clear_config_cache(self):
+        """Clear config cache to force refresh"""
+        self._config_cache = {}
+        self._config_cache_time = 0
+
     # ==================== POKEMON OPERATIONS ====================
 
-    def get_all_pokemon(self) -> List[Dict]:
+    def get_all_pokemon(self, force_refresh: bool = False) -> List[Dict]:
         """
-        Get all available Pokémon from the Pokemon sheet.
+        Get all available Pokémon from the Pokemon sheet with caching.
+
+        Args:
+            force_refresh: Force cache refresh if True
 
         Returns:
             List of Pokémon dictionaries with all data
         """
         try:
-            sheet = self._get_worksheet("Pokemon")
+            # Check cache validity
+            current_time = time.time()
+            cache_age = current_time - self._pokemon_cache_time
+
+            # Use cache if valid
+            if not force_refresh and self._pokemon_cache is not None and cache_age < self._pokemon_cache_ttl:
+                return list(self._pokemon_cache.values())
+
+            # Refresh cache
+            sheet = self._get_worksheet('Pokemon')
             records = sheet.get_all_records()
+
+            # Build cache as dictionary for O(1) lookups
+            self._pokemon_cache = {
+                record.get('Name', '').lower(): record
+                for record in records if 'Name' in record
+            }
+            self._pokemon_cache_time = current_time
+
+            print(f'📋 Pokemon cache refreshed ({len(self._pokemon_cache)} entries)')
+
             return records
+
         except Exception as e:
-            print(f"❌ Error getting all Pokémon: {e}")
+            print(f'❌ Error getting all Pokémon: {e}')
+            # Return cached data even if expired on error
+            if self._pokemon_cache:
+                print('⚠️ Using stale cache due to error')
+                return list(self._pokemon_cache.values())
             return []
+
+    def clear_pokemon_cache(self):
+        """Clear Pokemon cache to force refresh"""
+        self._pokemon_cache = None
+        self._pokemon_cache_time = 0
 
     def get_pokemon_data(self, pokemon_name: str) -> Dict:
         """
-        Get full data for a specific Pokémon.
+        Get full data for a specific Pokémon with caching.
 
         Args:
             pokemon_name: Name of the Pokémon
@@ -141,22 +200,24 @@ class SheetsService:
             ValueError: If Pokémon not found
         """
         try:
-            sheet = self._get_worksheet("Pokemon")
-            records = sheet.get_all_records()
+            # Ensure cache is populated
+            self.get_all_pokemon()
 
-            for record in records:
-                if record["Name"].lower() == pokemon_name.lower():
-                    return {
-                        "name": record["Name"],
-                        "tier": record.get("Tier", ""),
-                        "type1": record.get("Type1", ""),
-                        "type2": record.get("Type2", ""),
-                        "point_cost": int(record.get("Point_Cost", 0)),
-                        "hp": record.get("HP", ""),
-                        "attack": record.get("Attack", ""),
-                        "defense": record.get("Defense", ""),
-                        "sp_attack": record.get("SpAttack", ""),
-                        "sp_defense": record.get("SpDefense", ""),
+            # O(1) lookup from cache
+            pokemon_lower = pokemon_name.lower()
+            if pokemon_lower in self._pokemon_cache:
+                record = self._pokemon_cache[pokemon_lower]
+                return {
+                    'name': record['Name'],
+                    'tier': record.get('Tier', ''),
+                    'type1': record.get('Type1', ''),
+                    'type2': record.get('Type2', ''),
+                    'point_cost': int(record.get('Point_Cost', 0)),
+                    'hp': record.get('HP', ''),
+                    'attack': record.get('Attack', ''),
+                    'defense': record.get('Defense', ''),
+                    'sp_attack': record.get('SpAttack', ''),
+                    'sp_defense': record.get('SpDefense', ''),
                         "speed": record.get("Speed", "")
                     }
 

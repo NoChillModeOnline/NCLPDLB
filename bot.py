@@ -3,12 +3,20 @@ Pokemon Draft League Discord Bot
 
 Main entry point for the bot. Handles initialization, cog loading,
 and event handlers.
+
+Optimizations:
+- Async cog loading for faster startup
+- Connection pooling for Google Sheets
+- Efficient error handling
+- Status updates for monitoring
 """
 
 import discord
 from discord.ext import commands
 import sys
 import traceback
+import asyncio
+from typing import List
 
 # Import configuration
 from config import (
@@ -40,41 +48,67 @@ class PokemonDraftBot(commands.Bot):
         """
         Called when bot is starting up.
         Load all cogs (command modules) here.
+
+        Optimizations:
+        - Parallel cog loading for faster startup
+        - Better error handling per cog
         """
         # List of cog modules to load
-        cogs = [
-            "cogs.league",   # League initialization
-            "cogs.draft",    # Draft management
-            "cogs.tera",     # Tera Captain management
-            "cogs.team",     # Team management and analysis
-            # "cogs.battle", # Battle tracking (uncomment when implemented)
-            # "cogs.stats",  # Statistics (uncomment when implemented)
+        cogs: List[str] = [
+            'cogs.league',   # League initialization
+            'cogs.draft',    # Draft management
+            'cogs.tera',     # Tera Captain management
+            'cogs.team',     # Team management and analysis
+            # 'cogs.battle', # Battle tracking (uncomment when implemented)
+            # 'cogs.stats',  # Statistics (uncomment when implemented)
         ]
 
-        # Load each cog
-        for cog in cogs:
+        print(f'\n🔌 Loading {len(cogs)} cog(s)...')
+
+        # Load cogs concurrently for faster startup
+        async def load_cog(cog_name: str) -> tuple[str, bool, str]:
+            """Load a single cog and return result"""
             try:
-                await self.load_extension(cog)
-                print(f"✅ Loaded cog: {cog}")
+                await self.load_extension(cog_name)
+                return (cog_name, True, '')
             except Exception as e:
-                print(f"❌ Failed to load cog {cog}:")
-                print(f"   {type(e).__name__}: {e}")
+                error_msg = f'{type(e).__name__}: {e}'
                 traceback.print_exc()
+                return (cog_name, False, error_msg)
+
+        # Load all cogs in parallel
+        results = await asyncio.gather(*[load_cog(cog) for cog in cogs])
+
+        # Report results
+        success_count = sum(1 for _, success, _ in results if success)
+        for cog_name, success, error in results:
+            if success:
+                print(f'  ✅ {cog_name}')
+            else:
+                print(f'  ❌ {cog_name}: {error}')
+
+        print(f'✅ Loaded {success_count}/{len(cogs)} cog(s)\n')
 
     async def on_ready(self):
         """Called when bot successfully connects to Discord"""
-        print("\n" + "="*50)
-        print(f"🤖 Bot logged in as: {self.user.name} (ID: {self.user.id})")
-        print(f"📊 Connected to {len(self.guilds)} server(s)")
-        print(f"👥 Total members: {sum(guild.member_count for guild in self.guilds)}")
-        print(f"⚡ Command prefix: {COMMAND_PREFIX}")
-        print("="*50)
-        print("✅ Pokemon Draft League Bot is ready!")
-        print("   Use !help to see available commands\n")
+        # Calculate total members across all guilds
+        total_members = sum(guild.member_count or 0 for guild in self.guilds)
 
-        # Set bot status
+        print('\n' + '='*60)
+        print(f'🤖 Bot: {self.user.name} (ID: {self.user.id})')
+        print(f'📊 Servers: {len(self.guilds)}')
+        print(f'👥 Members: {total_members:,}')
+        print(f'⚡ Prefix: {COMMAND_PREFIX}')
+        print(f'🐍 Python: {sys.version.split()[0]}')
+        print(f'📦 Discord.py: {discord.__version__}')
+        print('='*60)
+        print('✅ Pokemon Draft League Bot is ready!')
+        print(f'   Use {COMMAND_PREFIX}help to see available commands\n')
+
+        # Set bot status with activity
         await self.change_presence(
-            activity=discord.Game(name=f"{COMMAND_PREFIX}help | Draft Leagues")
+            activity=discord.Game(name=f'{COMMAND_PREFIX}help | Draft Leagues'),
+            status=discord.Status.online
         )
 
     async def on_command_error(self, ctx, error):
