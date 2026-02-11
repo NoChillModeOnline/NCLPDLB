@@ -1,0 +1,301 @@
+{% extends "base.html" %}
+
+{% block title %}Dashboard - Pokemon Draft League{% endblock %}
+
+{% block content %}
+<div class="space-y-8">
+    <!-- Page Header -->
+    <div class="text-center">
+        <h1 class="text-4xl font-bold text-gray-900 mb-2">
+            <i class="fas fa-trophy text-pokemon-yellow"></i>
+            League Dashboard
+        </h1>
+        <p class="text-gray-600">Welcome to your Pokemon Draft League command center</p>
+    </div>
+
+    <!-- Stats Cards -->
+    <div class="grid grid-cols-1 md:grid-cols-4 gap-6">
+        <!-- Total Teams -->
+        <div class="bg-white rounded-lg shadow-md p-6 border-l-4 border-pokemon-red">
+            <div class="flex items-center justify-between">
+                <div>
+                    <p class="text-gray-500 text-sm font-semibold uppercase">Total Teams</p>
+                    <p id="stat-teams" class="text-3xl font-bold text-gray-900 mt-2">--</p>
+                </div>
+                <div class="bg-pokemon-red bg-opacity-10 rounded-full p-3">
+                    <i class="fas fa-users text-pokemon-red text-2xl"></i>
+                </div>
+            </div>
+        </div>
+
+        <!-- Total Pokemon -->
+        <div class="bg-white rounded-lg shadow-md p-6 border-l-4 border-pokemon-blue">
+            <div class="flex items-center justify-between">
+                <div>
+                    <p class="text-gray-500 text-sm font-semibold uppercase">Total Pokemon</p>
+                    <p id="stat-pokemon" class="text-3xl font-bold text-gray-900 mt-2">--</p>
+                </div>
+                <div class="bg-pokemon-blue bg-opacity-10 rounded-full p-3">
+                    <i class="fas fa-paw text-pokemon-blue text-2xl"></i>
+                </div>
+            </div>
+        </div>
+
+        <!-- Matches Played -->
+        <div class="bg-white rounded-lg shadow-md p-6 border-l-4 border-green-500">
+            <div class="flex items-center justify-between">
+                <div>
+                    <p class="text-gray-500 text-sm font-semibold uppercase">Matches</p>
+                    <p id="stat-matches" class="text-3xl font-bold text-gray-900 mt-2">--</p>
+                </div>
+                <div class="bg-green-500 bg-opacity-10 rounded-full p-3">
+                    <i class="fas fa-gamepad text-green-500 text-2xl"></i>
+                </div>
+            </div>
+        </div>
+
+        <!-- Avg Team Size -->
+        <div class="bg-white rounded-lg shadow-md p-6 border-l-4 border-pokemon-yellow">
+            <div class="flex items-center justify-between">
+                <div>
+                    <p class="text-gray-500 text-sm font-semibold uppercase">Avg Team Size</p>
+                    <p id="stat-avg-team" class="text-3xl font-bold text-gray-900 mt-2">--</p>
+                </div>
+                <div class="bg-pokemon-yellow bg-opacity-10 rounded-full p-3">
+                    <i class="fas fa-chart-line text-pokemon-yellow text-2xl"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Two Column Layout -->
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+        <!-- League Info -->
+        <div class="bg-white rounded-lg shadow-md p-6">
+            <h2 class="text-2xl font-bold text-gray-900 mb-4 flex items-center">
+                <i class="fas fa-info-circle text-pokemon-blue mr-2"></i>
+                League Information
+            </h2>
+            <div class="space-y-3">
+                <div class="flex justify-between py-2 border-b">
+                    <span class="text-gray-600 font-medium">League Name:</span>
+                    <span id="league-name" class="text-gray-900 font-semibold">Loading...</span>
+                </div>
+                <div class="flex justify-between py-2 border-b">
+                    <span class="text-gray-600 font-medium">Total Points:</span>
+                    <span id="total-points" class="text-gray-900 font-semibold">--</span>
+                </div>
+                <div class="flex justify-between py-2 border-b">
+                    <span class="text-gray-600 font-medium">Team Size:</span>
+                    <span id="team-size" class="text-gray-900 font-semibold">--</span>
+                </div>
+                <div class="flex justify-between py-2 border-b">
+                    <span class="text-gray-600 font-medium">Tera Captains:</span>
+                    <span id="max-tera" class="text-gray-900 font-semibold">--</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Draft Status -->
+        <div class="bg-white rounded-lg shadow-md p-6">
+            <h2 class="text-2xl font-bold text-gray-900 mb-4 flex items-center">
+                <i class="fas fa-hand-pointer text-pokemon-red mr-2"></i>
+                Draft Status
+            </h2>
+            <div id="draft-status-content" class="space-y-4">
+                <div class="text-center py-8">
+                    <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-pokemon-red mx-auto"></div>
+                    <p class="text-gray-500 mt-4">Loading draft status...</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Recent Activity / Leaderboard -->
+    <div class="bg-white rounded-lg shadow-md p-6">
+        <h2 class="text-2xl font-bold text-gray-900 mb-4 flex items-center">
+            <i class="fas fa-trophy text-pokemon-yellow mr-2"></i>
+            Current Standings
+        </h2>
+        <div id="standings-table" class="overflow-x-auto">
+            <div class="text-center py-8">
+                <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-pokemon-red mx-auto"></div>
+                <p class="text-gray-500 mt-4">Loading standings...</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Quick Actions -->
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <a href="/draft" class="bg-gradient-to-r from-pokemon-red to-red-700 text-white rounded-lg shadow-md p-6 hover:shadow-lg transition-shadow">
+            <i class="fas fa-hand-pointer text-4xl mb-3"></i>
+            <h3 class="text-xl font-bold mb-2">View Draft</h3>
+            <p class="text-sm opacity-90">Watch the draft live</p>
+        </a>
+        <a href="/teams" class="bg-gradient-to-r from-pokemon-blue to-blue-700 text-white rounded-lg shadow-md p-6 hover:shadow-lg transition-shadow">
+            <i class="fas fa-users text-4xl mb-3"></i>
+            <h3 class="text-xl font-bold mb-2">Browse Teams</h3>
+            <p class="text-sm opacity-90">View all team rosters</p>
+        </a>
+        <a href="/standings" class="bg-gradient-to-r from-green-500 to-green-700 text-white rounded-lg shadow-md p-6 hover:shadow-lg transition-shadow">
+            <i class="fas fa-chart-bar text-4xl mb-3"></i>
+            <h3 class="text-xl font-bold mb-2">Standings</h3>
+            <p class="text-sm opacity-90">Check league rankings</p>
+        </a>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+    // Load stats
+    async function loadStats() {
+        try {
+            const response = await fetch('/api/stats/summary');
+            const data = await response.json();
+
+            document.getElementById('stat-teams').textContent = data.total_teams;
+            document.getElementById('stat-pokemon').textContent = data.total_pokemon;
+            document.getElementById('stat-matches').textContent = data.total_matches;
+            document.getElementById('stat-avg-team').textContent = data.avg_team_size.toFixed(1);
+        } catch (error) {
+            console.error('Error loading stats:', error);
+        }
+    }
+
+    // Load league info
+    async function loadLeagueInfo() {
+        try {
+            const response = await fetch('/api/league/info');
+            const data = await response.json();
+
+            document.getElementById('league-name').textContent = data.league_name;
+            document.getElementById('total-points').textContent = data.total_points;
+            document.getElementById('team-size').textContent = `${data.min_pokemon}-${data.max_pokemon} Pokemon`;
+            document.getElementById('max-tera').textContent = `${data.max_tera_captains} per team`;
+        } catch (error) {
+            console.error('Error loading league info:', error);
+        }
+    }
+
+    // Load draft status
+    async function loadDraftStatus() {
+        try {
+            const response = await fetch('/api/draft/status');
+            const data = await response.json();
+
+            const content = document.getElementById('draft-status-content');
+
+            if (data.active) {
+                content.innerHTML = `
+                    <div class="bg-green-50 border-l-4 border-green-500 p-4">
+                        <div class="flex items-center">
+                            <i class="fas fa-circle text-green-500 animate-pulse mr-2"></i>
+                            <span class="font-semibold text-green-800">Draft is ACTIVE</span>
+                        </div>
+                    </div>
+                    <div class="text-center">
+                        <p class="text-4xl font-bold text-gray-900">${data.picks_made}</p>
+                        <p class="text-gray-600">Picks Made</p>
+                    </div>
+                    <a href="/draft" class="block w-full bg-pokemon-red text-white text-center py-3 rounded-lg font-semibold hover:bg-red-700 transition">
+                        <i class="fas fa-eye mr-2"></i>Watch Live
+                    </a>
+                `;
+            } else {
+                content.innerHTML = `
+                    <div class="bg-gray-50 border-l-4 border-gray-500 p-4">
+                        <div class="flex items-center">
+                            <i class="fas fa-circle text-gray-500 mr-2"></i>
+                            <span class="font-semibold text-gray-800">Draft Not Active</span>
+                        </div>
+                    </div>
+                    <div class="text-center py-4">
+                        <i class="fas fa-clock text-gray-400 text-4xl mb-2"></i>
+                        <p class="text-gray-600">Waiting for draft to begin</p>
+                    </div>
+                `;
+            }
+        } catch (error) {
+            console.error('Error loading draft status:', error);
+        }
+    }
+
+    // Load standings
+    async function loadStandings() {
+        try {
+            const response = await fetch('/api/standings');
+            const data = await response.json();
+
+            const table = document.getElementById('standings-table');
+
+            if (data.standings && data.standings.length > 0) {
+                let html = `
+                    <table class="min-w-full divide-y divide-gray-200">
+                        <thead class="bg-gray-50">
+                            <tr>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Rank</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Team</th>
+                                <th class="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">Wins</th>
+                                <th class="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">Losses</th>
+                                <th class="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">Win %</th>
+                            </tr>
+                        </thead>
+                        <tbody class="bg-white divide-y divide-gray-200">
+                `;
+
+                data.standings.slice(0, 5).forEach((team, index) => {
+                    const wins = team.Wins || 0;
+                    const losses = team.Losses || 0;
+                    const total = wins + losses;
+                    const winPct = total > 0 ? ((wins / total) * 100).toFixed(1) : '0.0';
+
+                    html += `
+                        <tr class="hover:bg-gray-50">
+                            <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">#${index + 1}</td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">${team.Team_Name}</td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-center text-green-600 font-semibold">${wins}</td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-center text-red-600 font-semibold">${losses}</td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-center font-semibold">${winPct}%</td>
+                        </tr>
+                    `;
+                });
+
+                html += `
+                        </tbody>
+                    </table>
+                    <div class="text-center mt-4">
+                        <a href="/standings" class="text-pokemon-blue hover:text-pokemon-red font-semibold">
+                            View Full Standings <i class="fas fa-arrow-right ml-1"></i>
+                        </a>
+                    </div>
+                `;
+
+                table.innerHTML = html;
+            } else {
+                table.innerHTML = `
+                    <div class="text-center py-8">
+                        <i class="fas fa-info-circle text-gray-400 text-4xl mb-2"></i>
+                        <p class="text-gray-600">No standings data available yet</p>
+                    </div>
+                `;
+            }
+        } catch (error) {
+            console.error('Error loading standings:', error);
+        }
+    }
+
+    // Load all data on page load
+    loadStats();
+    loadLeagueInfo();
+    loadDraftStatus();
+    loadStandings();
+
+    // Refresh data every 30 seconds
+    setInterval(() => {
+        loadStats();
+        loadDraftStatus();
+        loadStandings();
+    }, 30000);
+</script>
+{% endblock %}

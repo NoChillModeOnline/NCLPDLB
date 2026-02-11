@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Pokemon Draft League{% endblock %}</title>
+
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+
+    <!-- Tailwind Config -->
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        'pokemon-red': '#DC0A2D',
+                        'pokemon-blue': '#3B4CCA',
+                        'pokemon-yellow': '#FFCB05',
+                        'pokemon-black': '#2C2C2C',
+                    }
+                }
+            }
+        }
+    </script>
+
+    {% block extra_head %}{% endblock %}
+</head>
+<body class="bg-gray-100 min-h-screen">
+    <!-- Navigation -->
+    <nav class="bg-pokemon-red shadow-lg">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between h-16">
+                <div class="flex items-center">
+                    <a href="/" class="text-white text-2xl font-bold flex items-center">
+                        <i class="fas fa-trophy mr-2"></i>
+                        Pokemon Draft League
+                    </a>
+                </div>
+                <div class="flex items-center space-x-4">
+                    <a href="/" class="text-white hover:text-pokemon-yellow px-3 py-2 rounded-md text-sm font-medium">
+                        <i class="fas fa-home mr-1"></i> Dashboard
+                    </a>
+                    <a href="/draft" class="text-white hover:text-pokemon-yellow px-3 py-2 rounded-md text-sm font-medium">
+                        <i class="fas fa-hand-pointer mr-1"></i> Draft
+                    </a>
+                    <a href="/teams" class="text-white hover:text-pokemon-yellow px-3 py-2 rounded-md text-sm font-medium">
+                        <i class="fas fa-users mr-1"></i> Teams
+                    </a>
+                    <a href="/standings" class="text-white hover:text-pokemon-yellow px-3 py-2 rounded-md text-sm font-medium">
+                        <i class="fas fa-chart-bar mr-1"></i> Standings
+                    </a>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        {% block content %}{% endblock %}
+    </main>
+
+    <!-- Footer -->
+    <footer class="bg-pokemon-black text-white mt-12 py-6">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+            <p>&copy; 2026 Pokemon Draft League Bot | Built with ❤️ for competitive Pokemon</p>
+            <p class="text-gray-400 text-sm mt-2">
+                <i class="fas fa-code mr-1"></i> Version 1.0.0 |
+                <i class="fas fa-server mr-1"></i> Status: <span id="server-status" class="text-green-400">Online</span>
+            </p>
+        </div>
+    </footer>
+
+    <!-- Scripts -->
+    <script src="{{ url_for('static', filename='js/main.js') }}"></script>
+    {% block extra_scripts %}{% endblock %}
+
+    <!-- Check server status -->
+    <script>
+        async function checkStatus() {
+            try {
+                const response = await fetch('/api/status');
+                const data = await response.json();
+                document.getElementById('server-status').textContent = data.status === 'online' ? 'Online' : 'Offline';
+                document.getElementById('server-status').className = data.status === 'online' ? 'text-green-400' : 'text-red-400';
+            } catch (error) {
+                document.getElementById('server-status').textContent = 'Offline';
+                document.getElementById('server-status').className = 'text-red-400';
+            }
+        }
+        checkStatus();
+        setInterval(checkStatus, 30000); // Check every 30 seconds
+    </script>
+</body>
+</html>
