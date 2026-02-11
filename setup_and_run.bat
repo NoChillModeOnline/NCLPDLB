@@ -104,10 +104,18 @@ if not exist .credentials.json (
     goto MENU
 )
 
-echo Starting Web Dashboard...
+echo Starting Web Dashboard (Frontend)...
+echo.
+echo Features:
+echo  - Real-time league statistics
+echo  - Team rosters and analysis
+echo  - Draft progress monitoring
+echo  - REST API for integrations
 echo.
 echo Dashboard will be available at:
-echo http://localhost:5000
+echo   http://localhost:5000
+echo.
+echo See FRONTEND_SETUP.md for more options!
 echo.
 echo Press Ctrl+C to stop the server.
 echo.
@@ -144,8 +152,16 @@ if not exist .credentials.json (
 echo Starting both services...
 echo.
 echo This will open two windows:
-echo  1. Discord Bot
-echo  2. Web Dashboard (http://localhost:5000)
+echo  1. Discord Bot (backend)
+echo  2. Web Dashboard (frontend at http://localhost:5000)
+echo.
+echo Frontend Features:
+echo  - Real-time dashboard
+echo  - Team management interface
+echo  - Draft progress viewer
+echo  - REST API endpoints
+echo.
+echo See FRONTEND_SETUP.md for customization!
 echo.
 pause
 

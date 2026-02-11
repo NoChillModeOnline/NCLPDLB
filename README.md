@@ -291,6 +291,36 @@ If the bot responds, you're all set! 🎉
 - Submit builds to judges before battle
 - Record KOs and post replays
 
+## Web Dashboard (Frontend)
+
+The bot includes a **beautiful web dashboard** for managing your league!
+
+### Quick Start
+```bash
+# Start the web dashboard
+python web_server.py
+
+# Or use the setup wizard
+setup_and_run.bat
+```
+
+### Access Dashboard
+- **Main Dashboard:** http://localhost:5000
+- **Teams Page:** http://localhost:5000/teams
+- **API Endpoints:** http://localhost:5000/api/status
+
+### Features
+- ✅ Real-time league statistics
+- ✅ Team rosters and analysis
+- ✅ Draft progress monitoring
+- ✅ REST API (8 endpoints)
+- ✅ Mobile-responsive design
+- ✅ Auto-refresh every 30 seconds
+
+**See:** `FRONTEND_SETUP.md` for complete frontend documentation!
+
+---
+
 ## Troubleshooting
 
 ### Bot doesn't respond
