@@ -21,11 +21,11 @@ print('[TEST 1] Testing import performance...')
 start = time.time()
 
 try:
-    from utils.constants import TYPE_CHART, TERA_TYPES
+    from utils.constants import TYPE_CHART, VALID_TERA_TYPES
     import_time = time.time() - start
     print(f'  [OK] Constants imported in {import_time:.3f}s')
     print(f'  [INFO] TYPE_CHART: {len(TYPE_CHART)} types')
-    print(f'  [INFO] TERA_TYPES: {len(TERA_TYPES)} types')
+    print(f'  [INFO] VALID_TERA_TYPES: {len(VALID_TERA_TYPES)} types')
 except Exception as e:
     print(f'  [FAIL] Import error: {e}')
 
