@@ -1,6 +1,10 @@
 # Pokémon Draft League Discord Bot
 
-A Discord bot for managing Pokémon Draft Leagues with Google Sheets integration. Handle point-based drafts, Tera Captains, team management, battle tracking, and league statistics!
+## 💰 **100% FREE TO RUN!**
+
+A complete Discord bot for managing Pokémon Draft Leagues with Google Sheets integration. Handle point-based drafts, Tera Captains, team management, battle tracking, and league statistics!
+
+**No costs, no subscriptions, no hidden fees!** All services use free tiers. See [FREE_TIER_GUIDE.md](FREE_TIER_GUIDE.md) for details.
 
 ## Features
 
@@ -11,12 +15,12 @@ A Discord bot for managing Pokémon Draft Leagues with Google Sheets integration
 ⚔️ **Battle Tracking** - Record matches, view standings, track stats
 📈 **Analytics** - Usage stats, tier lists, player statistics
 
-## Prerequisites
+## Prerequisites (All Free!)
 
-- Python 3.8 or higher
-- Discord account with server admin access
-- Google Cloud account (free tier works!)
-- Git (optional, for version control)
+- Python 3.8 or higher (free download from python.org)
+- Discord account with server admin access (free)
+- Google Cloud account (100% free tier - no credit card required!)
+- Git (optional, free)
 
 ## Quick Start Guide
 
