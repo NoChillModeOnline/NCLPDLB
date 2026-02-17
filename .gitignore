@@ -1,0 +1,47 @@
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+.Python
+*.egg-info/
+dist/
+build/
+.eggs/
+
+# Environment
+.env
+*.local.env
+
+# Test / coverage
+.coverage
+htmlcov/
+.pytest_cache/
+.tox/
+
+# Google credentials (never commit)
+credentials.json
+service_account.json
+*.json.key
+
+# IDE
+.vscode/
+.idea/
+*.swp
+
+# Node / frontend
+node_modules/
+src/web/dist/
+src/web/.env
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Virtual environment
+.venv/
+venv/
+
+# Logs
+logs/
+*.log
