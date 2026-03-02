@@ -2,7 +2,7 @@ Category,Command,Description,Parameters,Permission Required,Notes
 Draft,/draft-setup,Launch the interactive step-by-step draft setup wizard,(none — opens wizard UI),Manage Server,Walks through format / rounds / timer / game mode interactively
 Draft,/draft-create,Quickly create a draft with inline options,"format (snake/auction/tiered/custom), rounds (int), timer_seconds (int), game_format (showdown/vgc/sv/swsh/bdsp/legends)",Manage Server,Skips the wizard; all parameters have defaults
 Draft,/draft-join,Join an active draft as a player,"team_name (optional text), pool (A or B optional)",Any Player,Can only join while draft is in SETUP status
-Draft,/draft-start,Start the draft and begin the first pick turn,(none),Commissioner Only,Requires at least 2 players joined; starts pick timer
+Draft,/draft-start,Start the draft and begin the first pick turn,(none),Guildmaster Only,Requires at least 12 players joined; starts pick timer
 Draft,/pick,Pick a Pokemon on your turn,"pokemon (name, required), tera_type (optional — Normal/Fire/Water/…), is_tera_captain (optional bool)",Any Player (on their turn),Auto-skips if pick timer expires; validates against ban list
 Draft,/ban,Ban a Pokemon during the ban phase,pokemon (name required),Any Player (on their turn),Only valid during BAN_PHASE (Custom format)
 Draft,/bid,Place a bid during an auction draft,amount (integer required),Any Player (on their turn),Auction format only; checked against remaining budget
