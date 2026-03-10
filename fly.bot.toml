@@ -1,0 +1,33 @@
+app = "pokemon-draft-bot"
+primary_region = "iad"
+
+[build]
+  dockerfile = "Dockerfile"
+  target = "bot"
+
+[env]
+  PYTHONUNBUFFERED = "1"
+  LOG_LEVEL = "INFO"
+
+[mounts]
+  source = "bot_data"
+  destination = "/app/data"
+
+[[services]]
+  # No inbound HTTP — bot uses outbound WebSocket to Discord only
+  internal_port = 8080
+  protocol = "tcp"
+  auto_stop_machines = false
+  auto_start_machines = true
+  min_machines_running = 1
+
+[checks]
+  [checks.alive]
+    type = "tcp"
+    port = 8080
+    interval = "30s"
+    timeout = "5s"
+
+[deploy]
+  strategy = "immediate"
+  release_command = "python -c 'from src.config import settings; print(\"config ok\")'"

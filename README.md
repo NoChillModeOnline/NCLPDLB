@@ -1,423 +1,406 @@
-# Pokémon Draft League Discord Bot
+# Pokemon Draft League Bot
 
-## 💰 **100% FREE TO RUN!**
-
-A complete Discord bot for managing Pokémon Draft Leagues with Google Sheets integration. Handle point-based drafts, Tera Captains, team management, battle tracking, and league statistics!
-
-**No costs, no subscriptions, no hidden fees!** All services use free tiers. See [FREE_TIER_GUIDE.md](FREE_TIER_GUIDE.md) for details.
-
-## Features
-
-✨ **Point-Based Draft System** - 120 points per player, 10-12 Pokémon per team
-⚡ **Tera Captain Management** - Designate up to 3 Tera Captains with type selection
-📊 **Google Sheets Integration** - All data stored in easy-to-view/edit spreadsheet
-🔄 **Trade System** - Unlimited Week 1 trades, 5 max Weeks 2-5
-⚔️ **Battle Tracking** - Record matches, view standings, track stats
-📈 **Analytics** - Usage stats, tier lists, player statistics
-
-## Prerequisites (All Free!)
-
-- Python 3.8 or higher (free download from python.org)
-- Discord account with server admin access (free)
-- Google Cloud account (100% free tier - no credit card required!)
-- Git (optional, free)
-
-## Quick Start Guide
-
-### Step 1: Clone/Download the Project
-
-```bash
-cd "F:\Claude Code\Claude\Claude Chats"
-# Project is already here at pokemon-draft-bot/
-```
-
-### Step 2: Install Dependencies
-
-```bash
-cd pokemon-draft-bot
-python -m venv venv
-# Activate virtual environment:
-# Windows:
-venv\Scripts\activate
-# Mac/Linux:
-source venv/bin/activate
-
-pip install -r requirements.txt
-```
-
-### Step 3: Set Up Google Sheets API
-
-1. **Go to Google Cloud Console**: https://console.cloud.google.com/
-2. **Create a new project** (e.g., "Pokemon Draft Bot")
-3. **Enable Google Sheets API**:
-   - Go to "APIs & Services" → "Library"
-   - Search for "Google Sheets API"
-   - Click "Enable"
-4. **Create Service Account**:
-   - Go to "APIs & Services" → "Credentials"
-   - Click "Create Credentials" → "Service Account"
-   - Name it "pokemon-draft-bot"
-   - Click "Create and Continue"
-   - Skip role assignment (click "Continue")
-   - Click "Done"
-5. **Generate JSON Key**:
-   - Click on the service account you just created
-   - Go to "Keys" tab
-   - Click "Add Key" → "Create New Key"
-   - Choose "JSON"
-   - Save the downloaded file as `.credentials.json` in the project root
-
-### Step 4: Create Google Sheet
-
-1. **Create a new Google Sheet**: https://sheets.google.com
-2. **Share with service account**:
-   - Open the `.credentials.json` file
-   - Copy the `client_email` value (looks like: `pokemon-draft-bot@...iam.gserviceaccount.com`)
-   - Click "Share" in your Google Sheet
-   - Paste the service account email
-   - Give it "Editor" permissions
-   - Click "Send"
-3. **Copy Spreadsheet ID**:
-   - From the URL: `https://docs.google.com/spreadsheets/d/{SPREADSHEET_ID}/edit`
-   - Save this ID for the next step
-
-4. **⚠️ IMPORTANT: Start with Blank Sheets**
-
-   **Do NOT pre-fill team data before the draft!** The bot will populate data as coaches:
-   - Register with `!league register`
-   - Complete the draft with `!draft pick`
-   - Upload logos with `!league uploadlogo`
-
-   **Workflow:**
-   1. Create blank sheet tabs with headers only
-   2. Run `!league init` to initialize
-   3. Coaches register and draft
-   4. Bot automatically populates Google Sheets
-   5. Run `!league start` when draft is complete
-
-5. **Create Sheet Tabs** (in this exact order):
-   - `Config`
-   - `Pokemon` (pre-fill this with all available Pokémon and their costs)
-   - `Teams` (blank - populated during draft)
-   - `Tera_Captains` (blank - populated when coaches set Tera Captains)
-   - `Draft_History` (blank - populated during draft)
-   - `Matches` (blank - populated when matches are recorded)
-   - `Standings` (blank - populated automatically)
-   - `Stats` (blank - populated automatically)
-   - `Trades` (blank - populated when trades occur)
-   - `Archived_Teams` (blank - populated when coaches are removed)
-   - `Error_Diagnostics` (blank - populated by `!league diagnose`)
-
-6. **Set up Config tab** (add these rows):
-   ```
-   Key                 | Value
-   -------------------|------
-   league_name        | My Pokemon League
-   total_points       | 120
-   min_pokemon        | 10
-   max_pokemon        | 12
-   max_tera_captains  | 3
-   max_tera_points    | 25
-   ```
-
-7. **Set up Pokemon tab headers** (then add all available Pokémon):
-   ```
-   Name | Tier | Type1 | Type2 | Point_Cost | HP | Attack | Defense | SpAttack | SpDefense | Speed
-   ```
-
-   **Example row:**
-   ```
-   Pikachu | A | Electric | | 8 | 35 | 55 | 40 | 50 | 50 | 90
-   ```
-
-8. **Set up Teams tab headers** (leave data rows BLANK):
-   ```
-   Player | Team_Name | Team_Logo | Pokemon_List | Total_Points_Used
-   ```
-
-9. **Set up remaining tab headers** (leave data rows BLANK):
-   - **Tera_Captains**: `Player | Pokemon | Tera_Type | Point_Cost`
-   - **Draft_History**: `Pick_Number | Player | Pokemon | Point_Cost | Timestamp`
-   - **Matches**: `Week | Player1 | Player2 | Score | Winner | Kills | Deaths | Differential | Replay_Link`
-   - **Standings**: `Player | Wins | Losses | Points | Status`
-   - **Stats**: `Pokemon | Times_Drafted | Win_Rate | Times_Used`
-   - **Trades**: `Week | Player1 | Pokemon1 | Player2 | Pokemon2 | Status | Timestamp`
-   - **Archived_Teams**: `Archived_Date | Player | Team_Name | Team_Logo | Pokemon_List | Total_Points_Used`
-   - **Error_Diagnostics**: `Timestamp | Error_Type | Severity | Description | Affected_Data | Status | Auto_Fix_Attempted`
-
-### Step 5: Set Up Discord Bot
-
-1. **Go to Discord Developer Portal**: https://discord.com/developers/applications
-2. **Click "New Application"**
-   - Name it "Pokemon Draft Bot"
-   - Click "Create"
-3. **Go to "Bot" section**
-   - Click "Add Bot" → "Yes, do it!"
-   - **Copy the bot token** (keep this secret!)
-4. **Enable Intents** (scroll down):
-   - ✅ Message Content Intent
-   - ✅ Server Members Intent
-5. **Go to "OAuth2" → "URL Generator"**
-   - Scopes: `bot`
-   - Bot Permissions:
-     - Send Messages
-     - Read Messages/View Channels
-     - Embed Links
-     - Attach Files
-     - Read Message History
-   - Copy the generated URL
-   - Open it in browser and invite bot to your server
-
-### Step 6: Configure Credentials
-
-Create a `.credentials.json` file in the project root with this structure:
-
-```json
-{
-    "discord_bot_token": "YOUR_DISCORD_BOT_TOKEN_HERE",
-    "spreadsheet_id": "YOUR_GOOGLE_SHEET_ID_HERE"
-}
-```
-
-**Important:** Never commit this file to Git! (It's already in `.gitignore`)
-
-### Step 7: Run the Bot
-
-```bash
-python bot.py
-```
-
-You should see:
-```
-Bot logged in as Pokemon Draft Bot#1234
-Ready to manage draft leagues!
-```
-
-### Step 8: Test in Discord
-
-In your Discord server, try:
-```
-!ping
-```
-
-If the bot responds, you're all set! 🎉
-
-## Available Commands
-
-### League Commands
-
-- `!league init <name>` - Initialize new league (admin)
-- `!league register "Team Name" <logo_url>` - Register as coach
-- `!league uploadlogo` - Upload team logo (attach image file)
-- `!league start` - Start season & create channels (admin)
-- `!league addcoach @user` - Add coach to league (admin)
-- `!league removecoach @user` - Remove coach (admin)
-- `!league diagnose` - Run error diagnostics (admin)
-- `!league reset` - Reset entire league (admin)
-
-### Draft Commands
-
-- `!draft start` - Start a new draft
-- `!draft pick <pokemon>` - Make a draft pick
-- `!draft budget [player]` - Check remaining points
-- `!draft status` - Show current draft status
-- `!draft undo` - Undo last pick (admin)
-- `!draft end` - End the draft (admin)
-
-### Tera Captain Commands
-
-- `!tera` or `!tera show [player]` - Display your or another player's Tera Captains
-- `!tera set <pokemon> <type>` - Designate a Pokémon as a Tera Captain with specific type
-- `!tera change <pokemon> <new_type>` - Change a Tera Captain's type
-- `!tera remove <pokemon>` - Remove Tera Captain designation from a Pokémon
-- `!tera list` - Show all league Tera Captains grouped by player
-- `!tera types` - Display all 19 valid Tera types with emojis
-- `!tera help` - Show detailed Tera Captain command help
-
-### Team Commands
-
-- `!team <player>` - View a player's team
-- `!roster` - View your own team
-- `!analyze [player]` - Comprehensive team analysis (public)
-- `!dmanalysis [player]` - Send analysis via Direct Message (private)
-- `!teams` - List all teams
-- `!trade propose <player> <your_pokemon> for <their_pokemon>` - Propose trade
-- `!trade accept` - Accept pending trade
-- `!trade reject` - Reject pending trade
-- `!trade history [player]` - View trade history
-
-### Battle Commands
-
-- `!record <opponent> <score>` - Record match result
-- `!schedule` - View your scheduled matches
-- `!standings` - Display current standings
-- `!matchups <week>` - View matchups for a week
-
-### Stats Commands
-
-- `!stats <pokemon>` - Show Pokémon usage stats
-- `!usage` - Show most/least used Pokémon
-- `!tiers` - Display tier breakdown
-- `!playerstats <player>` - Show player statistics
-
-## League Rules
-
-### Draft Rules
-- 120 points total per player
-- Draft 10-12 Pokémon
-- 5-minute pick timer
-- Once picked, Pokémon is unavailable
-
-### Tera Captain Rules
-- **Exactly 3 Tera Captains** per team (no more, no less)
-- **Point Cost Limit**: Only Pokémon with ≤13 points can be Tera Captains
-- **Total Points Limit**: Combined Tera Captain points must be ≤25
-- **Type Selection**: Can Terastallize to any of 19 types:
-  - 18 Standard Types: Normal, Fire, Water, Electric, Grass, Ice, Fighting, Poison, Ground, Flying, Psychic, Bug, Rock, Ghost, Dragon, Dark, Steel, Fairy
-  - **Stellar Type**: The 19th unique Tera type
-- **Set Anytime**: Designate Tera Captains before Week 1 or change them between weeks
-- **Validation**: Bot automatically validates all restrictions when setting captains
-
-### Trade Rules
-- **Week 1:** Unlimited trades
-- **Weeks 2-5:** Maximum 5 total trades
-- **Sunday-Tuesday:** Trades take effect immediately
-- **Wednesday-Saturday:** Trades take effect next week
-
-### Battle Rules
-- Double Battles, Best-of-Three
-- Bring 6, choose 4
-- Nintendo Switch only
-- Submit builds to judges before battle
-- Record KOs and post replays
-
-## Web Dashboard (Frontend)
-
-The bot includes a **beautiful web dashboard** for managing your league!
-
-### Quick Start
-```bash
-# Start the web dashboard
-python web_server.py
-
-# Or use the setup wizard
-setup_and_run.bat
-```
-
-### Access Dashboard
-- **Main Dashboard:** http://localhost:5000
-- **Teams Page:** http://localhost:5000/teams
-- **API Endpoints:** http://localhost:5000/api/status
-
-### Features
-- ✅ Real-time league statistics
-- ✅ Team rosters and analysis
-- ✅ Draft progress monitoring
-- ✅ REST API (8 endpoints)
-- ✅ Mobile-responsive design
-- ✅ Auto-refresh every 30 seconds
-
-**See:** `FRONTEND_SETUP.md` for complete frontend documentation!
+A full-featured Discord bot for running Pokemon draft leagues — supporting Pokemon Showdown and console games (Scarlet/Violet, Sword/Shield), with Google Sheets integration, a React web dashboard, ELO matchmaking, and dual deployment (free tier + Azure).
 
 ---
 
-## ☁️ Cloud Deployment
+## Features
 
-### Deploy to Azure (Microsoft Cloud)
+| Category | Details |
+|----------|---------|
+| **Draft Formats** | Snake, Auction, Tiered, Adaptive Banning — fully customizable |
+| **Tera Captains** | Per-team tera captain limit + tera type assignment per pick |
+| **Team Logos** | Upload PNG/JPG logos via `/team-register` — saved to Discord CDN + Sheets |
+| **Pokemon Data** | All 1,025 Gen 1-9 Pokemon with animated sprites (Showdown CDN) |
+| **Analytics** | Type coverage, weaknesses, speed tiers, team archetype, threat score |
+| **ELO** | Per-league ratings (K=32), standings, streak tracking |
+| **Battle Sim** | Heuristic matchup scoring, Showdown replay parsing |
+| **Spreadsheet** | 17-tab Google Sheets backend (Setup, Draft, Standings, MVP Race, etc.) |
+| **Web Dashboard** | React + Vite — live draft board, standings, team viewer, Pokemon search |
+| **Deployment** | Free tier (Fly.io + Cloudflare) or Azure (ACI + Static Web Apps) |
+| **Platform** | Windows 10+ / macOS 11+ / Linux — fully cross-platform |
 
-Deploy your bot to Azure App Service for 24/7 hosting!
+---
 
-**Quick Deploy:**
+## Quick Start
+
+### Prerequisites
+
+- Python 3.11+
+- Node.js 20+
+- Docker Desktop (optional but recommended)
+- Google Cloud service account JSON
+- Discord bot token
+
+### 1. Clone & configure
+
 ```bash
-# Deploy to Azure (Free tier available)
-az webapp up --name pokemon-draft-bot --runtime PYTHON:3.11
+git clone <your-repo>
+cd pokemon-draft-league-bot
+cp .env.example .env
+# Edit .env with your tokens
 ```
 
-**Features:**
-- ✅ Free tier available (F1)
-- ✅ Auto-scaling
-- ✅ Global availability
-- ✅ Azure Key Vault integration
-- ✅ PostgreSQL database option
-- ✅ CI/CD with GitHub Actions
+### 2. Install Python dependencies
 
-**Options:**
-- **App Service** - $0-13/month (F1 free, B1 basic)
-- **Azure Functions** - Serverless, pay-per-use
-- **Container Instances** - Docker deployment
-- **PostgreSQL** - Upgrade from Sheets ($12+/month)
+```bash
+pip install uv
+uv pip install -r requirements.txt
+```
 
-**See:** `AZURE_DEPLOYMENT.md` for complete Azure deployment guide!
+### 3. Seed Pokemon data
+
+```bash
+python scripts/seed_pokemon_data.py
+```
+
+This fetches all 1,025 Gen 1-9 Pokemon from PokéAPI and saves animated GIF sprite URLs.
+
+### 4. Set up Google Sheets
+
+```bash
+python scripts/setup_google_sheet.py
+```
+
+Creates all 17 tabs with correct headers, formatting, and data validation dropdowns.
+
+### 5. Run with Docker
+
+```bash
+docker compose up
+```
+
+Or run individually:
+
+```bash
+python src/bot/main.py       # Discord bot
+uvicorn src.api.app:app --reload   # Web API
+cd src/web && npm install && npm run dev   # React dashboard
+```
+
+---
+
+## Discord Commands
+
+### Draft Setup
+
+| Command | Description | Permission |
+|---------|-------------|------------|
+| `/draft-setup` | Interactive wizard: league name, format, game mode, player count, tera captains | Manage Server |
+| `/draft-create` | Quick create with inline options | Manage Server |
+| `/draft-join [team_name] [pool] [logo]` | Join draft, set team name and upload logo | Anyone |
+| `/draft-start` | Start the draft when all players are registered | Commissioner |
+| `/draft-status` | Show current round, active player, pick count | Anyone |
+
+### Picking
+
+| Command | Description |
+|---------|-------------|
+| `/pick <pokemon> [tera_type] [is_tera_captain]` | Pick a Pokemon; optionally assign tera type and mark as captain |
+| `/ban <pokemon>` | Ban a Pokemon during the ban phase |
+| `/bid <amount>` | Place a bid during auction drafts |
+
+### Team Management
+
+| Command | Description |
+|---------|-------------|
+| `/team [user]` | View your or another player's team with analytics |
+| `/team-register <team_name> [pool] [logo]` | Set team name, pool, and upload a logo image |
+| `/teamimport` | Import a Pokemon Showdown team export (modal) |
+| `/teamexport` | Export your team to Showdown format |
+| `/trade <user> <offer> <want>` | Propose a trade |
+| `/trade-accept <trade_id>` | Accept a pending trade |
+| `/legality <pokemon> <game>` | Check if a Pokemon is legal in a format |
+
+### Stats & Analysis
+
+| Command | Description |
+|---------|-------------|
+| `/analysis [user]` | Full team analysis (coverage, weaknesses, archetypes, threat score) |
+| `/matchup <user1> <user2>` | Compare two teams head-to-head |
+| `/standings [pool]` | View league standings with ELO |
+| `/replay <url>` | Submit a Showdown replay — auto-parses result and records to Sheets |
+| `/match-upload <opponent> <file>` | Upload a capture card video for a match |
+
+### League
+
+| Command | Description |
+|---------|-------------|
+| `/league-create <name>` | Create a new league |
+| `/schedule` | View this week's suggested matchups |
+| `/result <opponent> <winner>` | Report a match result (updates ELO) |
+
+### Spreadsheet Management (Manage Server only)
+
+| Command | Description |
+|---------|-------------|
+| `/sheet-setup view/edit` | View or edit Setup tab values |
+| `/sheet-standings` | Recalculate standings and write to Standings tab |
+| `/sheet-schedule` | Add a match to the Schedule tab |
+| `/sheet-result` | Record a match result to Match Stats tab |
+| `/sheet-transaction` | Log a trade/drop/add to Transactions tab |
+| `/sheet-rule` | Add a rule to the Rules tab |
+| `/sheet-player` | Update a player's team name, pool, or logo |
+| `/sheet-pokedex` | Sync all Pokemon data to the Pokedex tab |
+| `/sheet-playoff` | Add a playoff match to Playoffs tab |
+
+### Admin
+
+| Command | Description |
+|---------|-------------|
+| `/admin-skip [player]` | Force-skip a player's turn |
+| `/admin-pause` | Pause the draft |
+| `/admin-resume` | Resume a paused draft |
+| `/admin-override-pick <player> <pokemon>` | Override a pick as commissioner |
+| `/admin-reset` | Reset the entire draft (with confirmation) |
+
+### Machine Learning / Showdown
+
+| Command | Description |
+|---------|-------------|
+| `/spar <format> [username]` | Battle the trained PPO agent live on Pokemon Showdown |
+
+**Supported formats:**
+- Gen 9: Random Battle, OU, Doubles OU, National Dex, Monotype, Anything Goes, VGC 2026 Reg I/F
+- Gen 7/6: Random Battle
+
+**Training the agents:**
+
+```bash
+# Train all formats sequentially (500k steps each, ~8-12 hours total)
+python -m src.ml.train_all
+
+# Train a specific format
+python -m src.ml.train_policy --format gen9ou --timesteps 500000 --team-format gen9ou
+
+# Doubles formats (VGC, Doubles OU) use BattleDoubleEnv automatically
+python -m src.ml.train_policy --format gen9vgc2026regi --team-format gen9vgc2026regi
+```
+
+Models are saved to `data/ml/policy/<format>/final_model.zip`. The bot loads these when a user runs `/spar`.
+
+---
+
+## Architecture
+
+```
+┌─────────────────┐
+│  Discord Bot    │──┐
+│  (Python 3.11)  │  │
+└─────────────────┘  │
+                     ├──► Google Sheets (17 tabs)
+┌─────────────────┐  │
+│  FastAPI Server │──┤
+│  (REST+WebSocket)│  │
+└─────────────────┘  │
+         ▲           │
+         │           ▼
+┌─────────────────┐  ┌──────────────────┐
+│  React Frontend │  │  poke-env        │
+│  (Vite + TS)    │  │  Showdown Client │
+└─────────────────┘  └──────────────────┘
+         │                    │
+         ▼                    ▼
+  ┌──────────────┐   ┌─────────────────┐
+  │ Static Web   │   │ Pokemon Showdown│
+  │ Apps / Pages │   │ (play.pokemonshowdown.com)
+  └──────────────┘   └─────────────────┘
+
+Storage:
+  ├─ SQLite (dev) / PostgreSQL (prod) — local state
+  ├─ Google Sheets — draft logs, standings, team rosters
+  ├─ Azure Blob / R2 — match videos, thumbnails
+  └─ Local files — ML models (data/ml/policy/), Pokemon DB
+```
+
+**Key components:**
+
+- **Discord Bot** — Commands, modals, views, embeds; cogs for draft/team/stats/admin/league
+- **FastAPI** — REST endpoints + WebSocket for live draft board updates
+- **React Dashboard** — Real-time draft spectating, standings, team viewer, Pokemon search
+- **poke-env** — Python Showdown client for `/spar` battles with trained PPO agents
+- **Google Sheets** — Single source of truth for league data (no SQL migrations needed)
+- **ML Pipeline** — PPO (stable-baselines3) + custom Gym env for turn-based Showdown battles
+
+---
+
+## Google Sheets Structure
+
+The bot connects to a spreadsheet with 17 tabs:
+
+| Tab | Purpose |
+|-----|---------|
+| **Setup** | League config: name, format, pools, tera rules, commissioner |
+| **Rules** | Rule reference (Tera Captains, trading rules, etc.) |
+| **Cover** | Title/intro page |
+| **Draft** | Full pick log: round, pick, pool, player, Pokemon, tera type, tier |
+| **Draft Board** | Visual board summary (populated by bot) |
+| **Pool A Board** | Pool A rosters |
+| **Pool B Board** | Pool B rosters |
+| **Schedule** | Match schedule with results |
+| **Match Stats** | Full match records: teams used, replays, videos |
+| **Standings** | W/L/ELO/streak per pool |
+| **Pokemon Stats** | Per-Pokemon performance stats |
+| **MVP Race** | Most impactful Pokemon leaderboard |
+| **Transactions** | All trades, drops, adds |
+| **Playoffs** | Bracket results |
+| **Pokedex** | All 1,025 Pokemon reference data |
+| **Team Page Template** | Per-player team page with logo URL |
+| **Data** | Internal key/value store |
+
+### Connecting the Bot to Your Spreadsheet
+
+1. Create a Google Cloud project and enable the Sheets API
+2. Create a service account and download `credentials.json`
+3. Share your spreadsheet with the service account email
+4. Add the spreadsheet ID to `.env`:
+   ```
+   GOOGLE_SHEETS_SPREADSHEET_ID=your_spreadsheet_id_here
+   ```
+5. Run `python scripts/setup_google_sheet.py` to initialize all tabs
+
+---
+
+## Environment Variables
+
+See [.env.example](.env.example) for all variables. Key ones:
+
+```env
+DISCORD_TOKEN=         # Bot token from Discord Developer Portal
+DISCORD_CLIENT_ID=     # Application ID
+DISCORD_GUILD_ID=      # Test server ID (for instant slash command sync)
+BOT_NAME=DraftBot      # Display name in embeds and logs
+BOT_STATUS=Pokemon Draft League
+
+GOOGLE_SHEETS_CREDENTIALS_FILE=credentials.json
+GOOGLE_SHEETS_SPREADSHEET_ID=your_spreadsheet_id
+
+DEPLOY_TARGET=free     # "free" (Fly.io) or "azure"
+```
+
+---
+
+## Deployment
+
+### Free Tier (Default)
+
+| Service | Provider | Cost |
+|---------|---------|------|
+| Bot | Fly.io | Free (3 shared VMs) |
+| API | Fly.io | Free (512MB RAM) |
+| Frontend | Cloudflare Pages | Free (unlimited) |
+| Videos | Cloudflare R2 | Free (10GB) |
+| Database | Google Sheets + SQLite | Free |
+
+```bash
+flyctl deploy --config fly.bot.toml
+flyctl deploy --config fly.api.toml
+```
+
+### Azure (Production)
+
+```bash
+# Set DEPLOY_TARGET=azure in GitHub repo variables
+# GitHub Actions will auto-deploy on push to main
+```
+
+Push to `main` — GitHub Actions runs tests then deploys to both targets based on `DEPLOY_TARGET`.
+
+---
+
+## Development
+
+```bash
+# Run tests
+pytest tests/ -v
+
+# Run specific suite
+pytest tests/unit/ -v
+pytest tests/e2e/ -v
+
+# Load testing
+locust -f tests/performance/locustfile.py --host http://localhost:8000
+
+# Lint + type check
+ruff check src/
+mypy src/
+```
 
 ---
 
 ## Troubleshooting
 
-### Bot doesn't respond
-- Check bot is online (green dot in Discord)
-- Verify bot has "Send Messages" permission
-- Make sure Message Content Intent is enabled
+### Bot not responding to slash commands
 
-### "Permission denied" on Google Sheets
-- Verify service account email is shared with the sheet
-- Check service account has "Editor" permissions
-- Confirm `.credentials.json` contains valid credentials
+- **Symptom:** Commands don't appear in Discord autocomplete
+- **Fix:**
+  1. Verify `DISCORD_TOKEN` and `DISCORD_CLIENT_ID` in `.env`
+  2. Ensure bot has `applications.commands` scope when invited
+  3. For instant sync, set `DISCORD_GUILD_ID` to your test server
+  4. Restart the bot — slash commands register on startup
 
-### "Module not found" error
-- Make sure virtual environment is activated
-- Run `pip install -r requirements.txt` again
+### Google Sheets permission denied
 
-### Bot crashes on startup
-- Check `.credentials.json` format is valid JSON
-- Verify Discord token is correct
-- Check spreadsheet ID is correct
+- **Symptom:** `gspread.exceptions.APIError: Insufficient permissions`
+- **Fix:**
+  1. Share the spreadsheet with the service account email (found in `credentials.json` → `client_email`)
+  2. Grant **Editor** access, not Viewer
+  3. Verify `GOOGLE_SHEETS_SPREADSHEET_ID` matches your sheet
 
-## Project Structure
+### `/spar` command fails with "Model not found"
 
-```
-pokemon-draft-bot/
-├── bot.py                  # Main entry point
-├── config.py               # Configuration loader
-├── requirements.txt        # Python dependencies
-├── .credentials.json       # Secrets (not in Git)
-├── .gitignore             # Ignored files
-├── README.md              # This file
-├── cogs/                  # Command modules
-│   ├── draft.py
-│   ├── team.py
-│   ├── tera.py
-│   ├── battle.py
-│   └── stats.py
-├── services/              # Business logic
-│   ├── sheets_service.py
-│   ├── draft_service.py
-│   ├── team_service.py
-│   ├── tera_service.py
-│   └── battle_service.py
-├── models/                # Data models
-│   ├── pokemon.py
-│   ├── team.py
-│   └── match.py
-└── utils/                 # Helpers
-    ├── constants.py
-    └── validators.py
-```
+- **Symptom:** `/spar gen9ou` returns "No trained model found"
+- **Fix:** Train the model first:
+  ```bash
+  python -m src.ml.train_policy --format gen9ou --team-format gen9ou --timesteps 500000
+  ```
+  Models must exist at `data/ml/policy/<format>/final_model.zip`
 
-## Support & Resources
+### Video uploads fail
 
-- **Discord.py Documentation**: https://discordpy.readthedocs.io/
-- **Google Sheets API**: https://developers.google.com/sheets/api
-- **PokéAPI**: https://pokeapi.co/
-- **Implementation Plan**: See `C:\Users\power\.claude\plans\expressive-juggling-cascade.md`
+- **Symptom:** `/match-upload` returns "Upload failed"
+- **Fix:**
+  1. Check file size (max 100MB by default)
+  2. Verify storage backend is configured:
+     - **R2:** Set `R2_ACCESS_KEY_ID`, `R2_SECRET_ACCESS_KEY`, `R2_BUCKET_NAME`
+     - **Azure:** Set `AZURE_STORAGE_CONNECTION_STRING`
+  3. Ensure `ffmpeg` is installed for thumbnail generation
 
-## Contributing
+### Import errors on ARM64 Windows
 
-This bot is designed for personal/league use. Feel free to fork and customize for your own league rules!
+- **Symptom:** `aiohttp` or `discord.py` fail to install
+- **Fix:** Use Python 3.11 (not 3.14) or run via Docker (Linux containers have pre-built wheels)
 
-## License
+### Draft hangs after `/draft-start`
 
-MIT License - feel free to use and modify!
+- **Symptom:** No pick prompt appears
+- **Fix:**
+  1. Check bot has `Send Messages` + `Embed Links` permissions in the draft channel
+  2. Verify player count matches setup (all slots filled)
+  3. Check logs: `tail -f logs/bot.log`
+
+### WebSocket connection refused on frontend
+
+- **Symptom:** React dashboard shows "Connecting..." forever
+- **Fix:**
+  1. Ensure API is running: `uvicorn src.api.app:app --reload`
+  2. Update `CORS_ORIGINS` in `.env` to include frontend URL
+  3. Check firewall isn't blocking port 8000
 
 ---
 
-Built with ❤️ for Pokémon Draft Leagues
+## Contributing
+
+Contributions welcome! Please:
+
+1. Fork the repository
+2. Create a feature branch (`git checkout -b feature/amazing-feature`)
+3. Run tests (`pytest tests/ -v`) and linter (`ruff check src/`)
+4. Commit with clear messages
+5. Open a pull request
+
+---
+
+## License
+
+MIT

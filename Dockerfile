@@ -1,39 +1,21 @@
-# Pokemon Draft League Bot - Docker Container
-# Use this for Azure Container Instances or any Docker deployment
+# Pokemon Draft League Bot — Multi-stage Dockerfile
+# Works on Windows/macOS/Linux via Docker Desktop
+# Stage selection: docker build --target bot or --target api
 
-FROM python:3.11-slim
-
-# Set working directory
-WORKDIR /app
-
-# Install system dependencies
-RUN apt-get update && apt-get install -y \
-    gcc \
+FROM python:3.11-slim AS base
+RUN apt-get update && apt-get install -y --no-install-recommends ffmpeg \
     && rm -rf /var/lib/apt/lists/*
-
-# Copy requirements first for better caching
+WORKDIR /app
 COPY requirements.txt .
+RUN pip install --no-cache-dir -r requirements.txt
+COPY src/ ./src/
+COPY data/ ./data/
+COPY scripts/ ./scripts/
+RUN mkdir -p logs
 
-# Install Python dependencies
-RUN pip install --no-cache-dir --upgrade pip && \
-    pip install --no-cache-dir -r requirements.txt
+FROM base AS bot
+CMD ["python", "-m", "src.bot.main"]
 
-# Copy application code
-COPY . .
-
-# Make startup script executable
-RUN chmod +x startup.sh
-
-# Expose port for web dashboard
-EXPOSE 5000
-
-# Health check
-HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
-    CMD python -c "import requests; requests.get('http://localhost:5000/api/status')" || exit 1
-
-# Set environment variables
-ENV PYTHONUNBUFFERED=1
-ENV PORT=5000
-
-# Run startup script
-CMD ["./startup.sh"]
+FROM base AS api
+EXPOSE 8000
+CMD ["uvicorn", "src.api.app:app", "--host", "0.0.0.0", "--port", "8000"]

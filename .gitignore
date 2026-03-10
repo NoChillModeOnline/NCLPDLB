@@ -28,10 +28,12 @@ env/
 
 # Credentials & Secrets
 .credentials.json
+credentials.json
 .env
 *.key
 *.pem
 credentials/
+*.json.secret
 
 # IDE
 .vscode/
@@ -56,3 +58,27 @@ htmlcov/
 # Bot specific
 bot_data/
 cache/
+
+# Database
+*.db
+*.sqlite
+*.sqlite3
+
+# ML Models (large binaries — store in R2/Azure)
+data/ml/policy/
+*.pt
+*.pth
+*.pkl
+*.joblib
+
+# Node / Frontend build
+node_modules/
+dist/
+.vite/
+
+# Coverage reports
+coverage/
+*.xml
+
+# Audit / script output
+scripts/*.json
