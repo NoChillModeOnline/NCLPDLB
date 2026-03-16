@@ -1,49 +1,46 @@
 name: Train ML Models
 
-# Trigger manually from Actions tab — pick formats and timesteps
 on:
   workflow_dispatch:
     inputs:
       timesteps:
-        description: "Training steps per format (default: 500000)"
+        description: "Training steps per format"
         required: false
         default: "500000"
-      formats:
-        description: "Comma-separated formats to train (default: all)"
-        required: false
-        default: "gen9randombattle,gen9ou,gen9doublesou,gen9nationaldex,gen9monotype,gen9anythinggoes,gen7randombattle,gen6randombattle,gen9vgc2026regi,gen9vgc2026regf"
 
 jobs:
-  # Expand the comma-separated formats input into a JSON matrix
-  setup:
-    runs-on: ubuntu-latest
-    outputs:
-      matrix: ${{ steps.build-matrix.outputs.matrix }}
-    steps:
-      - id: build-matrix
-        run: |
-          FORMATS="${{ github.event.inputs.formats }}"
-          # Convert "a,b,c" → '{"format":["a","b","c"]}'
-          JSON=$(python3 -c "
-          import json, sys
-          fmts = [f.strip() for f in '$FORMATS'.split(',') if f.strip()]
-          print(json.dumps({'format': fmts}))
-          ")
-          echo "matrix=$JSON" >> "$GITHUB_OUTPUT"
-
   train:
-    needs: setup
     runs-on: ubuntu-latest
-    timeout-minutes: 340          # just under 6-hour Actions limit
+    timeout-minutes: 340
     strategy:
-      fail-fast: false            # let other formats keep running if one fails
-      matrix: ${{ fromJson(needs.setup.outputs.matrix) }}
+      fail-fast: false
+      matrix:
+        include:
+          - format: gen9randombattle
+            team_format: ""
+          - format: gen9ou
+            team_format: gen9ou
+          - format: gen9doublesou
+            team_format: gen9doublesou
+          - format: gen9nationaldex
+            team_format: gen9nationaldex
+          - format: gen9monotype
+            team_format: gen9monotype
+          - format: gen9anythinggoes
+            team_format: gen9anythinggoes
+          - format: gen7randombattle
+            team_format: ""
+          - format: gen6randombattle
+            team_format: ""
+          - format: gen9vgc2026regi
+            team_format: gen9vgc2026regi
+          - format: gen9vgc2026regf
+            team_format: gen9vgc2026regf
 
     steps:
       - name: Checkout
         uses: actions/checkout@v4
 
-      # ── Python ─────────────────────────────────────────────────────
       - name: Set up Python 3.12
         uses: actions/setup-python@v5
         with:
@@ -53,14 +50,10 @@ jobs:
       - name: Install Python dependencies
         run: |
           pip install --upgrade pip
-          # Core bot deps (minus cloud packages we removed)
           pip install -r requirements.txt
-          # PyTorch CPU (no GPU on free runners)
           pip install torch --index-url https://download.pytorch.org/whl/cpu
-          # ML training stack
           pip install stable-baselines3>=2.2.0 tensorboard>=2.16.0 poke-env>=0.8.1
 
-      # ── Pokemon Showdown server ─────────────────────────────────────
       - name: Set up Node.js
         uses: actions/setup-node@v4
         with:
@@ -71,47 +64,43 @@ jobs:
           git clone --depth 1 https://github.com/smogon/pokemon-showdown.git /tmp/showdown
           cd /tmp/showdown
           node pokemon-showdown start --no-security &
-          # Wait for server to be ready on port 8000
           for i in $(seq 1 20); do
             nc -z localhost 8000 && echo "Showdown ready" && break
-            echo "Waiting for Showdown... ($i/20)"
-            sleep 3
+            echo "Waiting... ($i/20)" && sleep 3
           done
 
-      # ── Training ────────────────────────────────────────────────────
       - name: Train ${{ matrix.format }}
         run: |
-          python -m src.ml.train_all \
-            --formats ${{ matrix.format }} \
-            --timesteps ${{ github.event.inputs.timesteps }} \
-            --save-dir data/ml/policy
+          ARGS="--format ${{ matrix.format }} --timesteps ${{ github.event.inputs.timesteps }} --save-dir data/ml/policy"
+          if [ -n "${{ matrix.team_format }}" ]; then
+            ARGS="$ARGS --team-format ${{ matrix.team_format }}"
+          fi
+          python -m src.ml.train_policy $ARGS
         env:
           PYTHONUNBUFFERED: "1"
 
-      # ── Upload model as artifact ────────────────────────────────────
-      - name: Upload model artifact
+      - name: Upload model
         uses: actions/upload-artifact@v4
-        if: always()              # upload even if training was interrupted
+        if: always()
         with:
           name: model-${{ matrix.format }}
           path: data/ml/policy/${{ matrix.format }}/final_model.zip
           if-no-files-found: warn
           retention-days: 90
 
-  # Merge all per-format artifacts into one zip for easy download
   package:
     needs: train
     runs-on: ubuntu-latest
     if: always()
     steps:
-      - name: Download all model artifacts
+      - name: Download all models
         uses: actions/download-artifact@v4
         with:
           pattern: model-*
           path: all-models
           merge-multiple: false
 
-      - name: List downloaded models
+      - name: List models
         run: find all-models -name "*.zip" | sort
 
       - name: Upload combined artifact
