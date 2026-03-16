@@ -42,10 +42,10 @@ jobs:
 
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
 
       - name: Set up Python 3.12
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@v6
         with:
           python-version: "3.12"
           cache: "pip"
@@ -58,9 +58,9 @@ jobs:
           pip install stable-baselines3>=2.2.0 tensorboard>=2.16.0 poke-env>=0.8.1
 
       - name: Set up Node.js
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v6
         with:
-          node-version: "20"
+          node-version: "24"
 
       - name: Start Pokemon Showdown server
         run: |
@@ -83,7 +83,7 @@ jobs:
           PYTHONUNBUFFERED: "1"
 
       - name: Upload model
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         if: always()
         with:
           name: model-${{ matrix.format }}
@@ -97,7 +97,7 @@ jobs:
     if: always()
     steps:
       - name: Download all models
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v8
         with:
           pattern: model-*
           path: all-models
@@ -107,7 +107,7 @@ jobs:
         run: find all-models -name "*.zip" | sort
 
       - name: Upload combined artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: all-models
           path: all-models/
