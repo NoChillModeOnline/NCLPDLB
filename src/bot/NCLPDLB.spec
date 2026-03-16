@@ -4,10 +4,14 @@
 # Output: src/bot/dist/NCLPDLB.exe  (~100-200 MB)
 
 import os
+import warnings
 from pathlib import Path
 
-# Resolve project root (3 levels up from src/bot/)
-project_root = str(Path(SPECPATH).parent.parent.parent)
+# Suppress pydantic V1 incompatibility warning on Python 3.14
+warnings.filterwarnings("ignore", category=UserWarning, module="pydantic")
+
+# Resolve project root (2 levels up from src/bot/ → pokemon-draft-bot/)
+project_root = str(Path(SPECPATH).parent.parent)
 
 # Include credentials.json only if it exists at project root
 datas = [
@@ -52,7 +56,7 @@ a = Analysis(
         'src.data.showdown',
         'src.data.smogon',
     ],
-    hookspath=[],
+    hookspath=['hooks'],
     hooksconfig={},
     runtime_hooks=[],
     excludes=[
