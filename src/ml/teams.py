@@ -269,7 +269,7 @@ IVs: 0 Spe
 - Moonblast
 - Calm Mind
 - Moonlight
-- Trick Room""",
+- Flamethrower""",
 
     # Team 5 — Sand
     """\
