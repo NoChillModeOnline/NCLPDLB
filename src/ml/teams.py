@@ -110,7 +110,7 @@ Bold Nature
 - Soft-Boiled
 - Heal Bell
 - Protect
-- Toxic
+- Thunder Wave
 
 Corviknight @ Leftovers
 Ability: Pressure
@@ -310,7 +310,7 @@ EVs: 248 HP / 252 Atk / 8 SpD
 Adamant Nature
 - U-turn
 - Bullet Punch
-- Superpower
+- Iron Head
 - Knock Off
 
 Rotom-Wash @ Leftovers
@@ -329,9 +329,9 @@ Tera Type: Normal
 EVs: 252 HP / 252 Def / 4 SpD
 Bold Nature
 - Soft-Boiled
-- Wish
+- Heal Bell
 - Protect
-- Toxic""",
+- Thunder Wave""",
 
 ]
 
@@ -405,14 +405,14 @@ Timid Nature
 
     # Team 2 — Fairy Offense
     """\
-Togekiss @ Choice Scarf
-Ability: Serene Grace
+Iron Valiant @ Choice Scarf
+Ability: Quark Drive
 Tera Type: Fairy
 EVs: 252 SpA / 4 SpD / 252 Spe
 Timid Nature
-- Air Slash
+- Moonblast
 - Dazzling Gleam
-- Flamethrower
+- Shadow Ball
 - Trick
 
 Gardevoir @ Choice Specs
@@ -730,7 +730,7 @@ EVs: 248 HP / 252 Atk / 8 SpD
 Adamant Nature
 - U-turn
 - Bullet Punch
-- Superpower
+- Iron Head
 - Knock Off
 
 Gholdengo @ Choice Specs
@@ -885,7 +885,7 @@ Adamant Nature
 - Aqua Jet
 - Play Rough
 - Knock Off
-- Superpower
+- Ice Punch
 
 Sylveon @ Leftovers
 Ability: Pixilate
@@ -895,7 +895,7 @@ Modest Nature
 - Hyper Voice
 - Mystical Fire
 - Calm Mind
-- Wish
+- Protect
 
 Mimikyu @ Life Orb
 Ability: Disguise
@@ -1071,15 +1071,15 @@ Adamant Nature
 - Earthquake
 - Recover
 
-Xerneas @ Power Herb
-Ability: Fairy Aura
+Flutter Mane @ Choice Specs
+Ability: Protosynthesis
 Tera Type: Fairy
-EVs: 252 HP / 252 SpA / 4 Spe
-Modest Nature
-- Geomancy
+EVs: 252 SpA / 4 SpD / 252 Spe
+Timid Nature
 - Moonblast
+- Shadow Ball
 - Focus Blast
-- Thunder
+- Dazzling Gleam
 
 Necrozma-Dusk-Mane @ Life Orb
 Ability: Prism Armor
@@ -1141,7 +1141,7 @@ Calm Nature
 - Eternabeam
 - Sludge Bomb
 - Recover
-- Toxic
+- Dragon Pulse
 
 Corviknight @ Leftovers
 Ability: Pressure
@@ -1251,15 +1251,15 @@ Adamant Nature
 - Outrage
 - Zen Headbutt
 
-Xerneas @ Power Herb
-Ability: Fairy Aura
-Tera Type: Fairy
-EVs: 252 HP / 252 SpA / 4 Spe
-Modest Nature
-- Geomancy
-- Moonblast
+Miraidon @ Choice Specs
+Ability: Hadron Engine
+Tera Type: Electric
+EVs: 252 SpA / 4 SpD / 252 Spe
+Timid Nature
+- Electro Drift
+- Draco Meteor
 - Focus Blast
-- Thunder
+- Volt Switch
 
 Landorus-Therian @ Rocky Helmet
 Ability: Intimidate
@@ -1321,14 +1321,14 @@ Adamant Nature
 - Wood Hammer
 - Fake Out
 
-Togekiss @ Sitrus Berry
-Ability: Serene Grace
+Iron Valiant @ Booster Energy
+Ability: Quark Drive
 Tera Type: Fairy
-EVs: 252 HP / 4 SpA / 252 Spe
+EVs: 252 SpA / 4 SpD / 252 Spe
 Timid Nature
-- Air Slash
+- Moonblast
 - Dazzling Gleam
-- Tailwind
+- Shadow Ball
 - Protect
 
 Amoonguss @ Rocky Helmet
@@ -1873,16 +1873,16 @@ Calm Nature
 - Rage Powder
 - Protect""",
 
-    # Team 5 — Xerneas restricted + Tailwind Offense
+    # Team 5 — Calyrex-Shadow restricted + Tailwind Offense
     """\
-Xerneas @ Power Herb
-Ability: Fairy Aura
-Tera Type: Fairy
-EVs: 252 HP / 252 SpA / 4 Spe
-Modest Nature
-- Geomancy
-- Moonblast
-- Focus Blast
+Calyrex-Shadow @ Life Orb
+Ability: As One (Spectrier)
+Tera Type: Psychic
+EVs: 252 SpA / 4 SpD / 252 Spe
+Timid Nature
+- Astral Barrage
+- Psyshock
+- Shadow Ball
 - Protect
 
 Tornadus @ Focus Sash
