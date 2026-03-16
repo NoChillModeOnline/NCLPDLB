@@ -66,14 +66,17 @@ jobs:
         run: |
           git clone --depth 1 https://github.com/smogon/pokemon-showdown.git /tmp/showdown
           cd /tmp/showdown
+          echo "--- Installing Showdown dependencies ---"
+          npm install
+          echo "--- Starting Showdown server ---"
           node pokemon-showdown start --no-security > /tmp/showdown.log 2>&1 &
           SHOWDOWN_PID=$!
-          for i in $(seq 1 30); do
+          for i in $(seq 1 20); do
             nc -z localhost 8000 && echo "Showdown ready after ${i}x3s" && break
             if ! kill -0 $SHOWDOWN_PID 2>/dev/null; then
               echo "Showdown process died! Log:" && cat /tmp/showdown.log && exit 1
             fi
-            echo "Waiting... ($i/30)" && sleep 3
+            echo "Waiting... ($i/20)" && sleep 3
           done
           nc -z localhost 8000 || { echo "Showdown never started. Log:"; cat /tmp/showdown.log; exit 1; }
 
