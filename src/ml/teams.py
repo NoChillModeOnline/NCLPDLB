@@ -268,7 +268,7 @@ Quiet Nature
 IVs: 0 Spe
 - Moonblast
 - Calm Mind
-- Soft-Boiled
+- Moonlight
 - Trick Room""",
 
     # Team 5 — Sand
@@ -370,7 +370,7 @@ EVs: 252 HP / 4 Def / 252 SpD
 Calm Nature
 - Moonblast
 - Calm Mind
-- Soft-Boiled
+- Moonlight
 - Flamethrower
 
 Scizor @ Choice Band
@@ -648,7 +648,7 @@ EVs: 252 HP / 4 Def / 252 SpD
 Calm Nature
 - Moonblast
 - Calm Mind
-- Soft-Boiled
+- Moonlight
 - Flamethrower""",
 
 ]
@@ -854,7 +854,7 @@ EVs: 252 HP / 4 Def / 252 SpD
 Calm Nature
 - Moonblast
 - Calm Mind
-- Soft-Boiled
+- Moonlight
 - Flamethrower
 
 Togekiss @ Choice Scarf
@@ -1226,7 +1226,7 @@ EVs: 252 HP / 4 Def / 252 SpD
 Calm Nature
 - Moonblast
 - Calm Mind
-- Soft-Boiled
+- Moonlight
 - Flamethrower""",
 
     # Team 5 — Balanced Restricted
