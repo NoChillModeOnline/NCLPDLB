@@ -795,7 +795,7 @@ Timid Nature
 - Flamethrower
 - U-turn
 
-Roaring Moon @ Booster Energy
+Roaring Moon @ Life Orb
 Ability: Protosynthesis
 Tera Type: Dragon
 EVs: 252 Atk / 4 Def / 252 Spe
@@ -835,15 +835,15 @@ Timid Nature
 - Flash Cannon
 - U-turn
 
-Iron Jugulis @ Choice Scarf
-Ability: Quark Drive
-Tera Type: Flying
+Noivern @ Choice Scarf
+Ability: Infiltrator
+Tera Type: Dragon
 EVs: 252 SpA / 4 SpD / 252 Spe
 Timid Nature
 - Hurricane
-- Dark Pulse
+- Dragon Pulse
 - U-turn
-- Hyper Voice""",
+- Flamethrower""",
 
     # Team 4 — Fairy
     """\
