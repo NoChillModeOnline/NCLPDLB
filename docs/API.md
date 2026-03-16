@@ -23,6 +23,7 @@ Currently **no authentication** required (designed for private Discord servers).
 Returns API status and Pokemon database load count.
 
 **Response:**
+
 ```json
 {
   "status": "ok",
@@ -39,6 +40,7 @@ Returns API status and Pokemon database load count.
 **GET** `/api/pokemon`
 
 Query parameters:
+
 - `tier` (optional) — Filter by Smogon tier (e.g., `OU`, `UU`, `Uber`)
 - `gen` (optional) — Filter by generation (1-9)
 - `q` (optional) — Fuzzy search by name
@@ -62,6 +64,7 @@ curl http://localhost:8000/api/pokemon?gen=9
 ```
 
 **Response:**
+
 ```json
 [
   {
@@ -90,6 +93,7 @@ curl http://localhost:8000/api/pokemon?gen=9
 **GET** `/api/pokemon/{name}`
 
 **Example:**
+
 ```bash
 curl http://localhost:8000/api/pokemon/garchomp
 ```
@@ -97,6 +101,7 @@ curl http://localhost:8000/api/pokemon/garchomp
 **Response:** Same schema as list endpoint, single object.
 
 **Error (404):**
+
 ```json
 {
   "detail": "Pokemon 'notreal' not found"
@@ -112,11 +117,13 @@ curl http://localhost:8000/api/pokemon/garchomp
 **GET** `/api/drafts/{guild_id}`
 
 **Example:**
+
 ```bash
 curl http://localhost:8000/api/drafts/123456789012345678
 ```
 
 **Response:**
+
 ```json
 {
   "guild_id": "123456789012345678",
@@ -145,6 +152,7 @@ curl http://localhost:8000/api/drafts/123456789012345678
 ```
 
 **Error (404):**
+
 ```json
 {
   "detail": "No active draft"
@@ -158,6 +166,7 @@ curl http://localhost:8000/api/drafts/123456789012345678
 **POST** `/api/drafts/{guild_id}/pick`
 
 **Request Body:**
+
 ```json
 {
   "player_id": "987654321098765432",
@@ -166,6 +175,7 @@ curl http://localhost:8000/api/drafts/123456789012345678
 ```
 
 **Response:**
+
 ```json
 {
   "success": true,
@@ -174,6 +184,7 @@ curl http://localhost:8000/api/drafts/123456789012345678
 ```
 
 **Error (400):**
+
 ```json
 {
   "detail": "Pokemon already picked"
@@ -191,11 +202,13 @@ curl http://localhost:8000/api/drafts/123456789012345678
 **GET** `/api/teams/{guild_id}/{player_id}`
 
 **Example:**
+
 ```bash
 curl http://localhost:8000/api/teams/123456789012345678/987654321098765432
 ```
 
 **Response:**
+
 ```json
 {
   "guild_id": "123456789012345678",
@@ -232,11 +245,13 @@ curl http://localhost:8000/api/teams/123456789012345678/987654321098765432
 Returns type coverage, weaknesses, archetypes, and threat score.
 
 **Example:**
+
 ```bash
 curl http://localhost:8000/api/teams/123456789012345678/987654321098765432/analysis
 ```
 
 **Response:**
+
 ```json
 {
   "coverage": {
@@ -289,11 +304,13 @@ curl http://localhost:8000/api/teams/123456789012345678/987654321098765432/analy
 **GET** `/api/leagues/{guild_id}/standings`
 
 **Example:**
+
 ```bash
 curl http://localhost:8000/api/leagues/123456789012345678/standings
 ```
 
 **Response:**
+
 ```json
 [
   {
@@ -324,11 +341,13 @@ curl http://localhost:8000/api/leagues/123456789012345678/standings
 **GET** `/api/matchups/{guild_id}/{p1_id}/{p2_id}`
 
 **Example:**
+
 ```bash
 curl http://localhost:8000/api/matchups/123456789012345678/987654321098765432/111222333444555666
 ```
 
 **Response:**
+
 ```json
 {
   "advantage": "Player 1 has a slight advantage (55-45)",
@@ -359,6 +378,7 @@ curl http://localhost:8000/api/matchups/123456789012345678/987654321098765432/11
 Connect to receive real-time draft updates.
 
 **Example (JavaScript):**
+
 ```javascript
 const ws = new WebSocket('ws://localhost:8000/ws/123456789012345678');
 
@@ -375,6 +395,7 @@ setInterval(() => {
 ```
 
 **Events broadcast:**
+
 - `{"event": "pick", "pokemon": "<name>", "player": "<id>"}` — A pick was made
 - `{"event": "ban", "pokemon": "<name>"}` — A Pokemon was banned
 - `{"event": "round_change", "round": <number>}` — Round incremented
@@ -402,6 +423,7 @@ No rate limiting currently implemented. Add with `slowapi` if exposing publicly.
 ## CORS
 
 Configured via `CORS_ORIGINS` in `.env`. Default allows:
+
 - `http://localhost:5173` (Vite dev server)
 - Your production frontend URL
 
@@ -416,5 +438,6 @@ uvicorn src.api.app:app --reload --host 0.0.0.0 --port 8000
 ```
 
 Interactive API docs:
+
 - Swagger UI: http://localhost:8000/docs
 - ReDoc: http://localhost:8000/redoc

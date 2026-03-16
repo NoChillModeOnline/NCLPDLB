@@ -7,6 +7,7 @@
 ## ✅ Completed
 
 ### Data & Configuration
+
 - ✅ **Pokemon Database**: 1,025 Gen 1-9 Pokemon seeded in `data/pokemon.json`
 - ✅ **Google Sheets**: 17 tabs created and configured
   - Setup, Rules, Cover, Draft, Draft Board, Pool A/B Boards
@@ -16,6 +17,7 @@
 - ✅ **Spreadsheet ID**: `16F9FP5wkyzDdF8C7vD9xwY2j2JkcWYR1EUK_MtRt7zs`
 
 ### Code & Documentation
+
 - ✅ **ML Infrastructure**:
   - BattleEnv (singles) and BattleDoubleEnv (doubles/VGC)
   - train_policy.py with team-based training
@@ -27,6 +29,7 @@
 - ✅ **GitHub**: All code synced to https://github.com/NoChillModeOnline/NCLPDLB.git
 
 ### Deployment Configuration
+
 - ✅ **Dockerfile**: Multi-stage build (bot + API targets)
 - ✅ **docker-compose.yml**: Bot, API, and optional frontend services
 - ✅ **Fly.io configs**: fly.bot.toml + fly.api.toml (free tier ready)
@@ -38,11 +41,13 @@
 ## ⏸️ Blocked (Waiting for Virtualization Fix)
 
 ### ML Training
+
 - ⏸️ **PyTorch + stable-baselines3**: Cannot install on ARM64 Windows natively
 - ⏸️ **All 10 format training**: Requires Docker with Linux containers
 - ⏸️ **Models**: None trained yet (requires ~8-12 hours once Docker running)
 
 ### Local Testing
+
 - ⏸️ **discord.py**: Cannot install (requires aiohttp, no ARM64 Windows wheels)
 - ⏸️ **Bot startup test**: Requires Docker environment
 
@@ -55,28 +60,33 @@
 ## 📋 Next Steps (Once Virtualization Fixed)
 
 ### 1. Verify Docker is Running
+
 ```bash
 docker ps  # Should show no errors
 ```
 
 ### 2. Build Docker Images
+
 ```bash
 cd pokemon-draft-league-bot
 docker-compose build
 ```
 
 ### 3. Test Bot Locally
+
 ```bash
 docker-compose up bot
 # Bot should connect to Discord and show "Ready!" in logs
 ```
 
 ### 4. Start ML Training (8-12 hours)
+
 ```bash
 docker-compose run --rm bot python -m src.ml.train_all
 ```
 
 This trains all 10 formats sequentially:
+
 - gen9randombattle (500k steps)
 - gen9ou (500k steps)
 - gen9doublesou (500k steps)
@@ -93,6 +103,7 @@ Models saved to: `data/ml/policy/<format>/final_model.zip`
 ### 5. Deploy to Production
 
 **Option A: Fly.io (Free Tier)**
+
 ```bash
 # Install Fly CLI
 flyctl auth login
@@ -111,6 +122,7 @@ flyctl secrets set \
 ```
 
 **Option B: Azure**
+
 ```bash
 # Set GitHub variable DEPLOY_TARGET=azure
 # Push to main branch triggers auto-deployment via GitHub Actions
@@ -118,6 +130,7 @@ git push origin main
 ```
 
 **Option C: Skip ML, Deploy Now**
+
 ```bash
 # All 50+ bot commands work without ML (only /spar requires trained models)
 # Deploy immediately using Option A or B above
@@ -135,6 +148,7 @@ git push origin main
 4. Users can start using the league immediately
 
 **To deploy:**
+
 1. Choose Fly.io (free) or Azure (paid)
 2. Follow deployment steps in `docs/DEPLOYMENT.md`
 3. Train models in background and re-deploy later
@@ -160,7 +174,9 @@ git push origin main
 ## 🔧 Virtualization Fix Instructions
 
 ### Step 1: Enable Windows Features
+
 Run as Administrator in PowerShell:
+
 ```powershell
 dism.exe /online /enable-feature /featurename:VirtualMachinePlatform /all /norestart
 dism.exe /online /enable-feature /featurename:Microsoft-Windows-Subsystem-Linux /all /norestart
@@ -168,16 +184,19 @@ dism.exe /online /enable-feature /featurename:Microsoft-Hyper-V-All /all /norest
 ```
 
 ### Step 2: Restart Computer
+
 ```powershell
 shutdown /r /t 0
 ```
 
 ### Step 3: Start Docker Desktop
+
 1. Launch Docker Desktop from Start Menu
 2. Wait for green "Running" status in system tray
 3. Verify: `docker ps` (should show no errors)
 
 ### Step 4: Continue Setup
+
 Return to this document and proceed with "Next Steps" above.
 
 ---

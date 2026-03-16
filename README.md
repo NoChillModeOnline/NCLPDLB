@@ -161,6 +161,7 @@ cd src/web && npm install && npm run dev   # React dashboard
 | `/spar <format> [username]` | Battle the trained PPO agent live on Pokemon Showdown |
 
 **Supported formats:**
+
 - Gen 9: Random Battle, OU, Doubles OU, National Dex, Monotype, Anything Goes, VGC 2026 Reg I/F
 - Gen 7/6: Random Battle
 
@@ -183,7 +184,7 @@ Models are saved to `data/ml/policy/<format>/final_model.zip`. The bot loads the
 
 ## Architecture
 
-```
+```text
 ┌─────────────────┐
 │  Discord Bot    │──┐
 │  (Python 3.11)  │  │
@@ -254,9 +255,11 @@ The bot connects to a spreadsheet with 17 tabs:
 2. Create a service account and download `credentials.json`
 3. Share your spreadsheet with the service account email
 4. Add the spreadsheet ID to `.env`:
-   ```
+
+   ```text
    GOOGLE_SHEETS_SPREADSHEET_ID=your_spreadsheet_id_here
    ```
+
 5. Run `python scripts/setup_google_sheet.py` to initialize all tabs
 
 ---
@@ -351,9 +354,11 @@ mypy src/
 
 - **Symptom:** `/spar gen9ou` returns "No trained model found"
 - **Fix:** Train the model first:
+
   ```bash
   python -m src.ml.train_policy --format gen9ou --team-format gen9ou --timesteps 500000
   ```
+
   Models must exist at `data/ml/policy/<format>/final_model.zip`
 
 ### Video uploads fail

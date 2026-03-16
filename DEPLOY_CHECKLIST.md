@@ -160,6 +160,7 @@ az ad sp create-for-rbac \
 Go to https://github.com/NoChillModeOnline/NCLPDLB/settings/variables/actions
 
 Add variable:
+
 - Name: `DEPLOY_TARGET`
 - Value: `azure`
 
@@ -171,6 +172,7 @@ git push origin master
 ```
 
 GitHub Actions will automatically:
+
 1. Build Docker images
 2. Push to Azure Container Registry
 3. Deploy containers to Azure Container Instances
@@ -236,11 +238,13 @@ docker-compose down
 ### 1. Invite Bot to Discord Server
 
 Use this URL (replace `YOUR_CLIENT_ID`):
-```
+
+```text
 https://discord.com/api/oauth2/authorize?client_id=1178100227522171004&permissions=2147551232&scope=bot%20applications.commands
 ```
 
 Required permissions:
+
 - Send Messages
 - Embed Links
 - Attach Files
@@ -250,7 +254,8 @@ Required permissions:
 ### 2. Test Core Commands
 
 In Discord:
-```
+
+```text
 /draft-setup
 /team
 /standings
@@ -260,6 +265,7 @@ In Discord:
 ### 3. Share Spreadsheet
 
 Share the Google Sheet with your service account email:
+
 1. Open https://docs.google.com/spreadsheets/d/16F9FP5wkyzDdF8C7vD9xwY2j2JkcWYR1EUK_MtRt7zs
 2. Click "Share"
 3. Add the email from credentials.json (client_email field)
@@ -277,6 +283,7 @@ Share the Google Sheet with your service account email:
 ## Troubleshooting
 
 ### Bot Not Responding
+
 ```bash
 # Fly.io
 flyctl logs --app pokemon-draft-bot | grep -i error
@@ -286,16 +293,19 @@ az container logs --resource-group pokemon-draft-rg --name pokemon-draft-bot
 ```
 
 ### Google Sheets Errors
+
 1. Verify service account has Editor access
 2. Check GOOGLE_SHEETS_SPREADSHEET_ID is correct
 3. Verify credentials.json is valid
 
 ### Commands Not Appearing
+
 1. Ensure bot has `applications.commands` scope
 2. Wait 5-10 minutes for Discord to sync commands
 3. Restart bot: `flyctl apps restart pokemon-draft-bot`
 
 ### API Not Accessible
+
 ```bash
 # Check API is running
 curl https://your-api-url/health
@@ -320,6 +330,7 @@ This takes 8-12 hours and creates models in `data/ml/policy/`
 ### 2. Upload Models to Deployment
 
 **Fly.io:**
+
 ```bash
 # Create volume
 flyctl volumes create bot_models --size 10 --app pokemon-draft-bot
@@ -330,6 +341,7 @@ flyctl ssh sftp shell --app pokemon-draft-bot
 ```
 
 **Azure:**
+
 ```bash
 # Upload to blob storage
 az storage blob upload-batch \
@@ -354,6 +366,7 @@ git push origin master
 ## Costs Summary
 
 ### Fly.io (Free)
+
 - Bot: Free (3 shared VMs)
 - API: Free (512MB RAM)
 - **Total: $0/month**
@@ -361,6 +374,7 @@ git push origin master
 Paid upgrade if needed: ~$5/month for dedicated VMs
 
 ### Azure
+
 - Container Registry: $5/month (Basic)
 - Container Instances: $15-30/month (1 vCPU, 1.5GB RAM)
 - Blob Storage: $0.20/month (~10GB)

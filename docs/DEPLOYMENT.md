@@ -22,15 +22,19 @@ Step-by-step instructions for deploying the Pokemon Draft League Bot to Azure or
    - Copy the spreadsheet ID from the URL
 
 3. **Pokemon Data Seed:**
+
    ```bash
    python scripts/seed_pokemon_data.py
    ```
+
    Creates `data/pokemon.json` with all 1,025 Gen 1-9 Pokemon.
 
 4. **Google Sheets Initialization:**
+
    ```bash
    python scripts/setup_google_sheet.py
    ```
+
    Creates all 17 tabs with headers and formatting.
 
 ---
@@ -67,6 +71,7 @@ flyctl deploy --config fly.bot.toml
 ```
 
 **First deployment will prompt you to:**
+
 - Create an app name (e.g., `my-draft-bot`)
 - Choose a region (select closest to your users)
 - Set up secrets
@@ -82,6 +87,7 @@ flyctl secrets set \
 ```
 
 **Upload Google credentials:**
+
 ```bash
 # Encode credentials.json to base64
 cat credentials.json | base64 > credentials.b64
@@ -229,6 +235,7 @@ az staticwebapp create \
 ```
 
 Get the deployment token:
+
 ```bash
 az staticwebapp secrets list \
   --name pokemon-draft-frontend \
@@ -268,6 +275,7 @@ Copy the entire JSON output and save as `AZURE_CREDENTIALS` secret.
 Go to Settings → Secrets and variables → Actions → Variables
 
 Add variable:
+
 - Name: `DEPLOY_TARGET`
 - Value: `azure`
 
@@ -280,6 +288,7 @@ git push origin main
 ```
 
 GitHub Actions will:
+
 1. Build Docker images
 2. Push to Azure Container Registry
 3. Deploy bot to Azure Container Instances
@@ -290,6 +299,7 @@ GitHub Actions will:
 Since ACI can't mount secrets as files easily, upload `credentials.json` to Blob Storage or Azure Key Vault:
 
 **Option A: Blob Storage**
+
 ```bash
 az storage blob upload \
   --account-name pokemondraftstorage \
@@ -301,6 +311,7 @@ az storage blob upload \
 Update bot to download from blob on startup.
 
 **Option B: Key Vault** (recommended)
+
 ```bash
 # Create Key Vault
 az keyvault create \
@@ -359,7 +370,8 @@ az staticwebapp show \
 ### 1. Test bot commands
 
 In Discord:
-```
+
+```text
 /draft-setup
 /team
 /standings
@@ -385,17 +397,20 @@ Update bot to download models from blob storage on startup.
 ### 3. Set up monitoring
 
 **Fly.io:**
+
 ```bash
 flyctl dashboard --app my-draft-bot
 ```
 
 **Azure:**
+
 - Enable Application Insights on your ACI
 - Set up alerts for container restarts or high memory usage
 
 ### 4. Database backup (if using PostgreSQL)
 
 **Azure:**
+
 ```bash
 az postgres flexible-server backup create \
   --resource-group pokemon-draft-rg \
@@ -410,6 +425,7 @@ az postgres flexible-server backup create \
 ### Fly.io: "Out of memory"
 
 Increase memory allocation in `fly.toml`:
+
 ```toml
 [vm]
   memory = '512mb'  # Default is 256mb
@@ -418,6 +434,7 @@ Increase memory allocation in `fly.toml`:
 ### Azure: "Image pull failed"
 
 Enable admin user on ACR:
+
 ```bash
 az acr update --name pokemondraftacr --admin-enabled true
 ```
@@ -425,6 +442,7 @@ az acr update --name pokemondraftacr --admin-enabled true
 ### Bot not connecting to Discord
 
 Check token is set correctly:
+
 ```bash
 # Fly
 flyctl secrets list --app my-draft-bot
@@ -444,7 +462,7 @@ Verify service account email has Editor access to the spreadsheet.
 
 ## Updating Deployment
 
-### Fly.io
+### Fly.io Update
 
 ```bash
 # Bot
@@ -454,7 +472,7 @@ flyctl deploy --config fly.bot.toml
 flyctl deploy --config fly.api.toml
 ```
 
-### Azure
+### Azure Update
 
 Just push to `main` — GitHub Actions auto-deploys.
 
@@ -468,7 +486,7 @@ git push origin main
 
 ## Costs
 
-### Fly.io (Free Tier)
+### Fly.io Costs (Free Tier)
 
 - Bot: Free (3 shared VMs, 256MB RAM)
 - API: Free (512MB RAM)
@@ -478,7 +496,7 @@ git push origin main
 
 Upgrade to paid if you exceed free tier limits.
 
-### Azure
+### Azure Costs
 
 - Container Registry (Basic): $5/month
 - Container Instances (1 vCPU, 1.5GB RAM): $15-30/month
@@ -492,7 +510,7 @@ Add ~$25/month if using Azure Database for PostgreSQL.
 
 ## Rollback
 
-### Fly.io
+### Fly.io Rollback
 
 ```bash
 # List releases
@@ -502,9 +520,10 @@ flyctl releases --app my-draft-bot
 flyctl releases rollback --app my-draft-bot
 ```
 
-### Azure
+### Azure Rollback
 
 Redeploy a previous commit:
+
 ```bash
 git revert HEAD
 git push origin main
