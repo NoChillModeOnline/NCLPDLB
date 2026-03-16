@@ -1,6 +1,8 @@
 # Pokemon Draft League Bot
 
-A full-featured Discord bot for running Pokemon draft leagues — supporting Pokemon Showdown and console games (Scarlet/Violet, Sword/Shield), with Google Sheets integration, a React web dashboard, ELO matchmaking, and dual deployment (free tier + Azure).
+A full-featured Discord bot for running Pokemon draft leagues — supporting Pokemon Showdown and
+console games (Scarlet/Violet, Sword/Shield), with Google Sheets integration, ELO matchmaking,
+and a standalone Windows executable (no server required).
 
 ---
 
@@ -16,39 +18,45 @@ A full-featured Discord bot for running Pokemon draft leagues — supporting Pok
 | **ELO** | Per-league ratings (K=32), standings, streak tracking |
 | **Battle Sim** | Heuristic matchup scoring, Showdown replay parsing |
 | **Spreadsheet** | 17-tab Google Sheets backend (Setup, Draft, Standings, MVP Race, etc.) |
-| **Web Dashboard** | React + Vite — live draft board, standings, team viewer, Pokemon search |
-| **Deployment** | Free tier (Fly.io + Cloudflare) or Azure (ACI + Static Web Apps) |
+| **Deployment** | Standalone .exe — double-click to run, no server or Docker needed |
 | **Platform** | Windows 10+ / macOS 11+ / Linux — fully cross-platform |
 
 ---
 
 ## Quick Start
 
-### Prerequisites
+### Option A: Run the standalone .exe (Windows — easiest)
+
+1. Download `NCLPDLB.exe` from the [Releases](https://github.com/NoChillModeOnline/NCLPDLB/releases) page
+2. Create a `.env` file next to the exe (copy from `.env.example`, fill in your tokens)
+3. Place your `credentials.json` next to the exe
+4. Double-click `NCLPDLB.exe` — the bot connects to Discord
+
+### Option B: Run from source (all platforms)
+
+#### Prerequisites
 
 - Python 3.11+
-- Node.js 20+
-- Docker Desktop (optional but recommended)
-- Google Cloud service account JSON
+- Google Cloud service account JSON (`credentials.json`)
 - Discord bot token
 
-### 1. Clone & configure
+#### 1. Clone & configure
 
 ```bash
-git clone <your-repo>
-cd pokemon-draft-league-bot
+git clone https://github.com/NoChillModeOnline/NCLPDLB.git
+cd NCLPDLB
 cp .env.example .env
 # Edit .env with your tokens
 ```
 
-### 2. Install Python dependencies
+#### 2. Install Python dependencies
 
 ```bash
 pip install uv
 uv pip install -r requirements.txt
 ```
 
-### 3. Seed Pokemon data
+#### 3. Seed Pokemon data
 
 ```bash
 python scripts/seed_pokemon_data.py
@@ -56,7 +64,7 @@ python scripts/seed_pokemon_data.py
 
 This fetches all 1,025 Gen 1-9 Pokemon from PokéAPI and saves animated GIF sprite URLs.
 
-### 4. Set up Google Sheets
+#### 4. Set up Google Sheets
 
 ```bash
 python scripts/setup_google_sheet.py
@@ -64,18 +72,18 @@ python scripts/setup_google_sheet.py
 
 Creates all 17 tabs with correct headers, formatting, and data validation dropdowns.
 
-### 5. Run with Docker
+#### 5. Run the bot
 
 ```bash
-docker compose up
+python src/bot/main.py
 ```
 
-Or run individually:
+#### 6. Build your own .exe (optional)
 
 ```bash
-python src/bot/main.py       # Discord bot
-uvicorn src.api.app:app --reload   # Web API
-cd src/web && npm install && npm run dev   # React dashboard
+cd src/bot
+pyinstaller NCLPDLB.spec
+# Output: src/bot/dist/NCLPDLB.exe
 ```
 
 ---
@@ -120,7 +128,7 @@ cd src/web && npm install && npm run dev   # React dashboard
 | `/matchup <user1> <user2>` | Compare two teams head-to-head |
 | `/standings [pool]` | View league standings with ELO |
 | `/replay <url>` | Submit a Showdown replay — auto-parses result and records to Sheets |
-| `/match-upload <opponent> <file>` | Upload a capture card video for a match |
+| `/match-upload <opponent> <file>` | Record a match video (Discord CDN URL saved to Sheets) |
 
 ### League
 
@@ -185,40 +193,21 @@ Models are saved to `data/ml/policy/<format>/final_model.zip`. The bot loads the
 ## Architecture
 
 ```text
-┌─────────────────┐
-│  Discord Bot    │──┐
-│  (Python 3.11)  │  │
-└─────────────────┘  │
-                     ├──► Google Sheets (17 tabs)
-┌─────────────────┐  │
-│  FastAPI Server │──┤
-│  (REST+WebSocket)│  │
-└─────────────────┘  │
-         ▲           │
-         │           ▼
-┌─────────────────┐  ┌──────────────────┐
-│  React Frontend │  │  poke-env        │
-│  (Vite + TS)    │  │  Showdown Client │
-└─────────────────┘  └──────────────────┘
-         │                    │
-         ▼                    ▼
-  ┌──────────────┐   ┌─────────────────┐
-  │ Static Web   │   │ Pokemon Showdown│
-  │ Apps / Pages │   │ (play.pokemonshowdown.com)
-  └──────────────┘   └─────────────────┘
-
-Storage:
-  ├─ SQLite (dev) / PostgreSQL (prod) — local state
-  ├─ Google Sheets — draft logs, standings, team rosters
-  ├─ Azure Blob / R2 — match videos, thumbnails
-  └─ Local files — ML models (data/ml/policy/), Pokemon DB
+┌─────────────────────────────────┐
+│       NCLPDLB.exe               │
+│  (standalone — no server needed)│
+│                                 │
+│  Discord Bot (discord.py)       │──► Google Sheets (17 tabs)
+│  SQLite (pokemon_draft.db)      │
+│  poke-env (Showdown client)     │──► play.pokemonshowdown.com
+│  ML models (data/ml/policy/)   │
+└─────────────────────────────────┘
 ```
 
 **Key components:**
 
 - **Discord Bot** — Commands, modals, views, embeds; cogs for draft/team/stats/admin/league
-- **FastAPI** — REST endpoints + WebSocket for live draft board updates
-- **React Dashboard** — Real-time draft spectating, standings, team viewer, Pokemon search
+- **SQLite** — Local state database, no server needed
 - **poke-env** — Python Showdown client for `/spar` battles with trained PPO agents
 - **Google Sheets** — Single source of truth for league data (no SQL migrations needed)
 - **ML Pipeline** — PPO (stable-baselines3) + custom Gym env for turn-based Showdown battles
@@ -277,37 +266,7 @@ BOT_STATUS=Pokemon Draft League
 
 GOOGLE_SHEETS_CREDENTIALS_FILE=credentials.json
 GOOGLE_SHEETS_SPREADSHEET_ID=your_spreadsheet_id
-
-DEPLOY_TARGET=free     # "free" (Fly.io) or "azure"
 ```
-
----
-
-## Deployment
-
-### Free Tier (Default)
-
-| Service | Provider | Cost |
-|---------|---------|------|
-| Bot | Fly.io | Free (3 shared VMs) |
-| API | Fly.io | Free (512MB RAM) |
-| Frontend | Cloudflare Pages | Free (unlimited) |
-| Videos | Cloudflare R2 | Free (10GB) |
-| Database | Google Sheets + SQLite | Free |
-
-```bash
-flyctl deploy --config fly.bot.toml
-flyctl deploy --config fly.api.toml
-```
-
-### Azure (Production)
-
-```bash
-# Set DEPLOY_TARGET=azure in GitHub repo variables
-# GitHub Actions will auto-deploy on push to main
-```
-
-Push to `main` — GitHub Actions runs tests then deploys to both targets based on `DEPLOY_TARGET`.
 
 ---
 
@@ -320,9 +279,6 @@ pytest tests/ -v
 # Run specific suite
 pytest tests/unit/ -v
 pytest tests/e2e/ -v
-
-# Load testing
-locust -f tests/performance/locustfile.py --host http://localhost:8000
 
 # Lint + type check
 ruff check src/
@@ -364,17 +320,8 @@ mypy src/
 ### Video uploads fail
 
 - **Symptom:** `/match-upload` returns "Upload failed"
-- **Fix:**
-  1. Check file size (max 100MB by default)
-  2. Verify storage backend is configured:
-     - **R2:** Set `R2_ACCESS_KEY_ID`, `R2_SECRET_ACCESS_KEY`, `R2_BUCKET_NAME`
-     - **Azure:** Set `AZURE_STORAGE_CONNECTION_STRING`
-  3. Ensure `ffmpeg` is installed for thumbnail generation
-
-### Import errors on ARM64 Windows
-
-- **Symptom:** `aiohttp` or `discord.py` fail to install
-- **Fix:** Use Python 3.11 (not 3.14) or run via Docker (Linux containers have pre-built wheels)
+- **Fix:** Check file size (max 100MB). Videos are stored as Discord CDN links.
+  For permanent storage, share a YouTube or Twitch link instead.
 
 ### Draft hangs after `/draft-start`
 
@@ -383,14 +330,6 @@ mypy src/
   1. Check bot has `Send Messages` + `Embed Links` permissions in the draft channel
   2. Verify player count matches setup (all slots filled)
   3. Check logs: `tail -f logs/bot.log`
-
-### WebSocket connection refused on frontend
-
-- **Symptom:** React dashboard shows "Connecting..." forever
-- **Fix:**
-  1. Ensure API is running: `uvicorn src.api.app:app --reload`
-  2. Update `CORS_ORIGINS` in `.env` to include frontend URL
-  3. Check firewall isn't blocking port 8000
 
 ---
 

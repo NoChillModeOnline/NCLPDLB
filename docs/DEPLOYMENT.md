@@ -1,10 +1,10 @@
 # Deployment Guide
 
-Step-by-step instructions for deploying the Pokemon Draft League Bot to Azure or Fly.io (free tier).
+How to run the Pokemon Draft League Bot — standalone exe or from source.
 
 ---
 
-## Prerequisites (Both Paths)
+## Prerequisites
 
 1. **Discord Bot Setup:**
    - Create application at https://discord.com/developers/applications
@@ -21,346 +21,76 @@ Step-by-step instructions for deploying the Pokemon Draft League Bot to Azure or
    - Share it with the service account email (Editor access)
    - Copy the spreadsheet ID from the URL
 
-3. **Pokemon Data Seed:**
+3. **Pokemon Data Seed (first run only):**
 
    ```bash
    python scripts/seed_pokemon_data.py
-   ```
-
-   Creates `data/pokemon.json` with all 1,025 Gen 1-9 Pokemon.
-
-4. **Google Sheets Initialization:**
-
-   ```bash
    python scripts/setup_google_sheet.py
    ```
 
-   Creates all 17 tabs with headers and formatting.
+---
+
+## Option A: Standalone .exe (Windows)
+
+The simplest way to run — no Python or Docker required.
+
+### 1. Build the exe
+
+```bash
+cd src/bot
+pyinstaller NCLPDLB.spec
+```
+
+Output: `src/bot/dist/NCLPDLB.exe` (~100–200 MB)
+
+### 2. Distribute
+
+Copy these files to the target machine:
+
+```text
+NCLPDLB.exe
+.env              ← fill in from .env.example
+credentials.json  ← Google service account JSON
+```
+
+All other files (SQLite DB, Pokemon data) are bundled inside the exe or created automatically.
+
+### 3. Run
+
+Double-click `NCLPDLB.exe` or run from terminal:
+
+```bash
+./NCLPDLB.exe
+```
+
+The bot connects to Discord, registers slash commands, and is ready.
+
+### 4. Logs
+
+Logs are written to `logs/bot.log` next to the exe.
 
 ---
 
-## Path A: Free Tier (Fly.io + Cloudflare)
+## Option B: Run from Source (All Platforms)
 
-**Total cost:** $0/month
-
-### 1. Install Fly CLI
+### 1. Install dependencies
 
 ```bash
-# macOS
-brew install flyctl
-
-# Linux
-curl -L https://fly.io/install.sh | sh
-
-# Windows
-powershell -Command "iwr https://fly.io/install.ps1 -useb | iex"
+pip install uv
+uv pip install -r requirements.txt
 ```
 
-### 2. Sign up and authenticate
+### 2. Configure
 
 ```bash
-flyctl auth signup
-# Or login if you have an account:
-flyctl auth login
+cp .env.example .env
+# Edit .env with your tokens
 ```
 
-### 3. Deploy the Discord bot
+### 3. Run
 
 ```bash
-flyctl deploy --config fly.bot.toml
-```
-
-**First deployment will prompt you to:**
-
-- Create an app name (e.g., `my-draft-bot`)
-- Choose a region (select closest to your users)
-- Set up secrets
-
-### 4. Configure secrets
-
-```bash
-flyctl secrets set \
-  DISCORD_TOKEN="your_discord_token" \
-  DISCORD_CLIENT_ID="your_client_id" \
-  GOOGLE_SHEETS_SPREADSHEET_ID="your_sheet_id" \
-  --app my-draft-bot
-```
-
-**Upload Google credentials:**
-
-```bash
-# Encode credentials.json to base64
-cat credentials.json | base64 > credentials.b64
-
-# Set as secret
-flyctl secrets set GOOGLE_SHEETS_CREDENTIALS_B64="$(cat credentials.b64)" --app my-draft-bot
-```
-
-Update `src/data/sheets.py` to decode base64 credentials if `GOOGLE_SHEETS_CREDENTIALS_B64` is set.
-
-### 5. Deploy the API
-
-```bash
-flyctl deploy --config fly.api.toml
-```
-
-```bash
-flyctl secrets set \
-  DISCORD_TOKEN="your_token" \
-  GOOGLE_SHEETS_SPREADSHEET_ID="your_sheet_id" \
-  --app my-draft-api
-```
-
-### 6. Set up Cloudflare R2 (video storage)
-
-1. Create Cloudflare account: https://dash.cloudflare.com
-2. Go to R2 Object Storage → Create bucket: `pokemon-draft-videos`
-3. Create API token with R2 permissions
-4. Add secrets to Fly:
-
-```bash
-flyctl secrets set \
-  R2_ACCOUNT_ID="your_account_id" \
-  R2_ACCESS_KEY_ID="your_key" \
-  R2_SECRET_ACCESS_KEY="your_secret" \
-  R2_BUCKET_NAME="pokemon-draft-videos" \
-  R2_PUBLIC_URL="https://pub-xxxxx.r2.dev" \
-  --app my-draft-bot
-```
-
-### 7. Deploy frontend to Cloudflare Pages
-
-```bash
-cd src/web
-npm install
-npm run build
-```
-
-1. Go to Cloudflare Pages → Create project
-2. Connect your GitHub repo
-3. Build settings:
-   - Framework: Vite
-   - Build command: `cd src/web && npm run build`
-   - Output directory: `src/web/dist`
-4. Environment variables:
-   - `VITE_API_URL`: `https://my-draft-api.fly.dev`
-
-### 8. Verify deployment
-
-```bash
-# Check bot logs
-flyctl logs --app my-draft-bot
-
-# Check API health
-curl https://my-draft-api.fly.dev/health
-
-# Visit frontend
-# https://pokemon-draft-league.pages.dev
-```
-
----
-
-## Path B: Azure (Production)
-
-**Estimated cost:** ~$20-35/month
-
-### 1. Install Azure CLI
-
-```bash
-# macOS
-brew install azure-cli
-
-# Linux
-curl -sL https://aka.ms/InstallAzureCLIDeb | sudo bash
-
-# Windows
-winget install Microsoft.AzureCLI
-```
-
-### 2. Login and set subscription
-
-```bash
-az login
-az account set --subscription "Your Subscription Name"
-```
-
-### 3. Create resource group
-
-```bash
-az group create \
-  --name pokemon-draft-rg \
-  --location eastus2
-```
-
-### 4. Create Azure Container Registry
-
-```bash
-az acr create \
-  --name pokemondraftacr \
-  --resource-group pokemon-draft-rg \
-  --sku Basic
-```
-
-### 5. Create Azure Blob Storage (for videos)
-
-```bash
-# Create storage account
-az storage account create \
-  --name pokemondraftstorage \
-  --resource-group pokemon-draft-rg \
-  --location eastus2 \
-  --sku Standard_LRS
-
-# Create container
-az storage container create \
-  --name match-videos \
-  --account-name pokemondraftstorage \
-  --public-access off
-
-# Get connection string
-az storage account show-connection-string \
-  --name pokemondraftstorage \
-  --resource-group pokemon-draft-rg
-```
-
-Save the connection string for later.
-
-### 6. Create Azure Static Web Apps (frontend)
-
-```bash
-az staticwebapp create \
-  --name pokemon-draft-frontend \
-  --resource-group pokemon-draft-rg \
-  --location eastus2
-```
-
-Get the deployment token:
-
-```bash
-az staticwebapp secrets list \
-  --name pokemon-draft-frontend \
-  --resource-group pokemon-draft-rg \
-  --query "properties.apiKey" -o tsv
-```
-
-### 7. Set up GitHub Actions secrets
-
-Go to your GitHub repo → Settings → Secrets and variables → Actions
-
-**Add these secrets:**
-
-| Secret | Value | How to get |
-|--------|-------|------------|
-| `AZURE_CREDENTIALS` | Service principal JSON | See step 8 below |
-| `ACR_NAME` | `pokemondraftacr` | Your ACR name |
-| `AZURE_RG` | `pokemon-draft-rg` | Your resource group |
-| `AZURE_STATIC_WEB_APPS_TOKEN` | From step 6 | Deployment token |
-| `DISCORD_TOKEN` | Your Discord bot token | Discord Developer Portal |
-| `AZURE_STORAGE_CONNECTION_STRING` | From step 5 | Connection string |
-
-### 8. Create service principal for GitHub Actions
-
-```bash
-az ad sp create-for-rbac \
-  --name "github-deploy-pokemon-draft" \
-  --role Contributor \
-  --scopes /subscriptions/{subscription-id}/resourceGroups/pokemon-draft-rg \
-  --sdk-auth
-```
-
-Copy the entire JSON output and save as `AZURE_CREDENTIALS` secret.
-
-### 9. Set GitHub variable
-
-Go to Settings → Secrets and variables → Actions → Variables
-
-Add variable:
-
-- Name: `DEPLOY_TARGET`
-- Value: `azure`
-
-### 10. Push to trigger deployment
-
-```bash
-git add .
-git commit -m "Deploy to Azure"
-git push origin main
-```
-
-GitHub Actions will:
-
-1. Build Docker images
-2. Push to Azure Container Registry
-3. Deploy bot to Azure Container Instances
-4. Deploy frontend to Azure Static Web Apps
-
-### 11. Upload credentials to Azure
-
-Since ACI can't mount secrets as files easily, upload `credentials.json` to Blob Storage or Azure Key Vault:
-
-**Option A: Blob Storage**
-
-```bash
-az storage blob upload \
-  --account-name pokemondraftstorage \
-  --container-name config \
-  --name credentials.json \
-  --file credentials.json
-```
-
-Update bot to download from blob on startup.
-
-**Option B: Key Vault** (recommended)
-
-```bash
-# Create Key Vault
-az keyvault create \
-  --name pokemon-draft-kv \
-  --resource-group pokemon-draft-rg \
-  --location eastus2
-
-# Store credentials as secret
-az keyvault secret set \
-  --vault-name pokemon-draft-kv \
-  --name google-credentials \
-  --file credentials.json
-```
-
-Update bot to fetch from Key Vault using managed identity.
-
-### 12. Configure environment variables in ACI
-
-```bash
-az container create \
-  --resource-group pokemon-draft-rg \
-  --name pokemon-draft-bot \
-  --image pokemondraftacr.azurecr.io/pokemon-draft-bot:latest \
-  --registry-login-server pokemondraftacr.azurecr.io \
-  --registry-username pokemondraftacr \
-  --registry-password $(az acr credential show -n pokemondraftacr --query "passwords[0].value" -o tsv) \
-  --cpu 1 \
-  --memory 1.5 \
-  --environment-variables \
-    DEPLOY_TARGET=azure \
-    GOOGLE_SHEETS_SPREADSHEET_ID=your_sheet_id \
-  --secure-environment-variables \
-    DISCORD_TOKEN=your_discord_token \
-    AZURE_STORAGE_CONNECTION_STRING="your_connection_string"
-```
-
-### 13. Verify deployment
-
-```bash
-# Check bot logs
-az container logs \
-  --resource-group pokemon-draft-rg \
-  --name pokemon-draft-bot
-
-# Check static web app URL
-az staticwebapp show \
-  --name pokemon-draft-frontend \
-  --resource-group pokemon-draft-rg \
-  --query "defaultHostname" -o tsv
+python src/bot/main.py
 ```
 
 ---
@@ -379,154 +109,51 @@ In Discord:
 
 ### 2. Train ML models (optional)
 
-SSH into your deployment or run locally, then upload models to persistent storage:
+Only needed for the `/spar` command. All other commands work without ML.
 
 ```bash
-# Train all formats (8-12 hours)
+# Requires x86 machine with PyTorch installed
 python -m src.ml.train_all
-
-# Upload to Azure Blob
-az storage blob upload-batch \
-  --account-name pokemondraftstorage \
-  --destination ml-models \
-  --source data/ml/policy
 ```
 
-Update bot to download models from blob storage on startup.
+This takes 8-12 hours and creates models in `data/ml/policy/`.
 
-### 3. Set up monitoring
-
-**Fly.io:**
-
-```bash
-flyctl dashboard --app my-draft-bot
-```
-
-**Azure:**
-
-- Enable Application Insights on your ACI
-- Set up alerts for container restarts or high memory usage
-
-### 4. Database backup (if using PostgreSQL)
-
-**Azure:**
-
-```bash
-az postgres flexible-server backup create \
-  --resource-group pokemon-draft-rg \
-  --name your-db-server \
-  --backup-name manual-backup-$(date +%Y%m%d)
-```
+Place the `data/ml/policy/` directory next to the exe (or in the project root when running
+from source) so the bot can find the trained models.
 
 ---
 
 ## Troubleshooting
 
-### Fly.io: "Out of memory"
-
-Increase memory allocation in `fly.toml`:
-
-```toml
-[vm]
-  memory = '512mb'  # Default is 256mb
-```
-
-### Azure: "Image pull failed"
-
-Enable admin user on ACR:
-
-```bash
-az acr update --name pokemondraftacr --admin-enabled true
-```
-
 ### Bot not connecting to Discord
 
-Check token is set correctly:
+Verify `DISCORD_TOKEN` is set correctly in `.env`.
 
-```bash
-# Fly
-flyctl secrets list --app my-draft-bot
-
-# Azure
-az container show \
-  --resource-group pokemon-draft-rg \
-  --name pokemon-draft-bot \
-  --query "containers[0].environmentVariables"
-```
-
-### Google Sheets "Permission denied"
+### Google Sheets permission denied
 
 Verify service account email has Editor access to the spreadsheet.
 
----
+### Commands not appearing in Discord
 
-## Updating Deployment
+1. Ensure bot has `applications.commands` scope when invited
+2. Wait 5–10 minutes for Discord to sync
+3. Restart the bot
 
-### Fly.io Update
+### Video uploads
 
-```bash
-# Bot
-flyctl deploy --config fly.bot.toml
-
-# API
-flyctl deploy --config fly.api.toml
-```
-
-### Azure Update
-
-Just push to `main` — GitHub Actions auto-deploys.
-
-```bash
-git add .
-git commit -m "Update feature X"
-git push origin main
-```
+Match videos are recorded as Discord CDN attachment URLs. For permanent storage,
+users should share YouTube or Twitch links instead of uploading files directly.
 
 ---
 
-## Costs
+## Updating
 
-### Fly.io Costs (Free Tier)
-
-- Bot: Free (3 shared VMs, 256MB RAM)
-- API: Free (512MB RAM)
-- Cloudflare Pages: Free (unlimited bandwidth)
-- Cloudflare R2: Free (10GB storage)
-- **Total: $0/month**
-
-Upgrade to paid if you exceed free tier limits.
-
-### Azure Costs
-
-- Container Registry (Basic): $5/month
-- Container Instances (1 vCPU, 1.5GB RAM): $15-30/month
-- Blob Storage (~10GB): $0.20/month
-- Static Web Apps: Free tier
-- **Total: ~$20-35/month**
-
-Add ~$25/month if using Azure Database for PostgreSQL.
-
----
-
-## Rollback
-
-### Fly.io Rollback
+Pull the latest code or download the new exe from Releases:
 
 ```bash
-# List releases
-flyctl releases --app my-draft-bot
+git pull origin main
+python src/bot/main.py
 
-# Rollback to previous
-flyctl releases rollback --app my-draft-bot
+# Or rebuild the exe:
+cd src/bot && pyinstaller NCLPDLB.spec
 ```
-
-### Azure Rollback
-
-Redeploy a previous commit:
-
-```bash
-git revert HEAD
-git push origin main
-```
-
-Or manually update ACI to use an older image tag.

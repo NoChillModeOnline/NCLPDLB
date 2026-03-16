@@ -4,7 +4,6 @@ Cross-platform: uses pathlib for all file paths.
 """
 import re
 from pathlib import Path
-from typing import Literal
 
 from pydantic import field_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
@@ -18,10 +17,8 @@ class Settings(BaseSettings):
         env_file=PROJECT_ROOT / ".env",
         env_file_encoding="utf-8",
         case_sensitive=False,
+        extra="ignore",
     )
-
-    # Deployment
-    deploy_target: Literal["free", "azure"] = "free"
 
     # Discord
     discord_token: str
@@ -59,27 +56,6 @@ class Settings(BaseSettings):
     # ML policy models directory
     ml_policy_dir: str = "data/ml/policy"
 
-    # Video Storage — Cloudflare R2 (free tier)
-    r2_account_id: str = ""
-    r2_access_key_id: str = ""
-    r2_secret_access_key: str = ""
-    r2_bucket_name: str = "pokemon-draft-videos"
-    r2_public_url: str = ""
-
-    # Video Storage — Azure Blob (Path B)
-    azure_storage_connection_string: str = ""
-    azure_storage_container: str = "match-videos"
-
-    # Web API
-    api_host: str = "0.0.0.0"
-    api_port: int = 8000
-    api_secret_key: str = "change-me-in-production"
-    # Stored as comma-separated string; use .cors_origins_list for the parsed list
-    cors_origins: str = "http://localhost:5173"
-
-    # FFmpeg — cross-platform default uses PATH
-    ffmpeg_path: str = "ffmpeg"
-
     # Smogon / VGC
     smogon_strategy_url: str = "https://www.smogon.com/dex"
     vgc_format: str = "reg-h"
@@ -93,19 +69,9 @@ class Settings(BaseSettings):
     log_file: Path = PROJECT_ROOT / "logs" / "bot.log"
 
     @property
-    def cors_origins_list(self) -> list[str]:
-        """Return CORS origins as a list (split on comma)."""
-        return [o.strip() for o in self.cors_origins.split(",") if o.strip()]
-
-    @property
     def data_dir(self) -> Path:
         """Cross-platform path to local data files."""
         return PROJECT_ROOT / "data"
-
-    @property
-    def video_storage_backend(self) -> str:
-        """Which video backend to use based on deploy target."""
-        return "azure" if self.deploy_target == "azure" else "r2"
 
 
 # Singleton instance — import this everywhere
