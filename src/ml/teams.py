@@ -1130,7 +1130,7 @@ EVs: 252 HP / 252 Def / 4 SpD
 Impish Nature
 - Body Press
 - Iron Defense
-- Sacred Sword
+- Crunch
 - Protect
 
 Eternatus @ Leftovers
@@ -1138,7 +1138,7 @@ Ability: Pressure
 Tera Type: Poison
 EVs: 252 HP / 4 SpA / 252 SpD
 Calm Nature
-- Eternabeam
+- Flamethrower
 - Sludge Bomb
 - Recover
 - Dragon Pulse
