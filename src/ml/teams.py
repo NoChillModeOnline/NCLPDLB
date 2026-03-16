@@ -857,15 +857,15 @@ Calm Nature
 - Moonlight
 - Flamethrower
 
-Togekiss @ Choice Scarf
-Ability: Serene Grace
+Flutter Mane @ Choice Scarf
+Ability: Protosynthesis
 Tera Type: Fairy
 EVs: 252 SpA / 4 SpD / 252 Spe
 Timid Nature
-- Air Slash
+- Moonblast
+- Shadow Ball
+- Psyshock
 - Dazzling Gleam
-- Flamethrower
-- Trick
 
 Gardevoir @ Choice Specs
 Ability: Trace
@@ -1205,7 +1205,7 @@ EVs: 252 HP / 252 SpA / 4 SpD
 Quiet Nature
 IVs: 0 Spe
 - Photon Geyser
-- Moongeist Beam
+- Moonblast
 - Power Gem
 - Trick Room
 
