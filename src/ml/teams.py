@@ -1237,7 +1237,7 @@ Tera Type: Psychic
 EVs: 252 HP / 4 Def / 252 SpD
 Calm Nature
 - Aeroblast
-- Roost
+- Whirlwind
 - Recover
 - Toxic
 
@@ -1258,7 +1258,7 @@ EVs: 252 SpA / 4 SpD / 252 Spe
 Timid Nature
 - Electro Drift
 - Draco Meteor
-- Focus Blast
+- Dazzling Gleam
 - Volt Switch
 
 Landorus-Therian @ Rocky Helmet
