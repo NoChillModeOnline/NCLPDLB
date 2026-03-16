@@ -1239,7 +1239,7 @@ Calm Nature
 - Aeroblast
 - Whirlwind
 - Recover
-- Thunder Wave
+- Ice Beam
 
 Zekrom @ Choice Band
 Ability: Teravolt
