@@ -485,7 +485,7 @@ Impish Nature
 - Earthquake
 - Iron Head
 - Rapid Spin
-- Spikes
+- Stealth Rock
 
 Toxapex @ Black Sludge
 Ability: Regenerator
