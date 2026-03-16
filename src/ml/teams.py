@@ -959,7 +959,7 @@ Calm Nature
 - Recover
 - Stealth Rock
 
-Iron Treads @ Booster Energy
+Iron Treads @ Life Orb
 Ability: Quark Drive
 Tera Type: Ground
 EVs: 252 Atk / 4 Def / 252 Spe
@@ -1205,7 +1205,7 @@ EVs: 252 HP / 252 SpA / 4 SpD
 Quiet Nature
 IVs: 0 Spe
 - Photon Geyser
-- Moonblast
+- Flash Cannon
 - Power Gem
 - Trick Room
 
