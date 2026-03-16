@@ -144,12 +144,12 @@ Calm Nature
 
     # Team 3 — Rain Offense
     """\
-Pelipper @ Damp Rock
+Pelipper @ Leftovers
 Ability: Drizzle
 Tera Type: Water
 EVs: 248 HP / 8 SpA / 252 SpD
 Calm Nature
-- Scald
+- Surf
 - Hurricane
 - Roost
 - U-turn
@@ -172,17 +172,17 @@ Bold Nature
 - Thunderbolt
 - Hurricane
 - Roost
-- Defog
+- Volt Switch
 
-Ferrothorn @ Leftovers
-Ability: Iron Barbs
-Tera Type: Steel
-EVs: 252 HP / 88 Def / 168 SpD
-Relaxed Nature
-- Power Whip
-- Knock Off
+Iron Treads @ Heavy-Duty Boots
+Ability: Quark Drive
+Tera Type: Ground
+EVs: 252 HP / 4 Atk / 252 Def
+Impish Nature
+- Earthquake
+- Iron Head
+- Rapid Spin
 - Stealth Rock
-- Leech Seed
 
 Swampert @ Leftovers
 Ability: Torrent
@@ -351,7 +351,7 @@ Impish Nature
 - Earthquake
 - U-turn
 - Stealth Rock
-- Knock Off
+- Rock Slide
 
 Rotom-Wash @ Leftovers
 Ability: Levitate
@@ -435,15 +435,15 @@ Jolly Nature
 - Pursuit
 - Earthquake
 
-Ferrothorn @ Leftovers
-Ability: Iron Barbs
-Tera Type: Steel
-EVs: 252 HP / 88 Def / 168 SpD
-Relaxed Nature
-- Power Whip
-- Knock Off
+Iron Treads @ Heavy-Duty Boots
+Ability: Quark Drive
+Tera Type: Ground
+EVs: 252 HP / 4 Atk / 252 Def
+Impish Nature
+- Earthquake
+- Iron Head
+- Rapid Spin
 - Stealth Rock
-- Leech Seed
 
 Garchomp @ Rocky Helmet
 Ability: Rough Skin
@@ -477,22 +477,22 @@ Impish Nature
 - Dragon Tail
 - Fire Fang
 
-Ferrothorn @ Leftovers
-Ability: Iron Barbs
-Tera Type: Steel
-EVs: 252 HP / 88 Def / 168 SpD
-Relaxed Nature
-- Power Whip
-- Knock Off
+Iron Treads @ Heavy-Duty Boots
+Ability: Quark Drive
+Tera Type: Ground
+EVs: 252 HP / 4 Atk / 252 Def
+Impish Nature
+- Earthquake
+- Iron Head
+- Rapid Spin
 - Spikes
-- Leech Seed
 
 Toxapex @ Black Sludge
 Ability: Regenerator
 Tera Type: Poison
 EVs: 252 HP / 252 Def / 4 SpD
 Bold Nature
-- Scald
+- Surf
 - Recover
 - Toxic Spikes
 - Haze
@@ -505,7 +505,7 @@ Bold Nature
 - Thunderbolt
 - Hurricane
 - Roost
-- Defog
+- Volt Switch
 
 Blissey @ Leftovers
 Ability: Natural Cure
@@ -599,7 +599,7 @@ Jolly Nature
 - Earthquake
 - U-turn
 - Stone Edge
-- Knock Off
+- Rock Slide
 
 Rotom-Wash @ Leftovers
 Ability: Levitate
@@ -629,7 +629,7 @@ Bold Nature
 - Thunderbolt
 - Hurricane
 - Roost
-- Defog
+- Volt Switch
 
 Tyranitar @ Choice Band
 Ability: Sand Stream
@@ -666,7 +666,7 @@ Ability: Regenerator
 Tera Type: Water
 EVs: 252 HP / 252 Def / 4 SpD
 Bold Nature
-- Scald
+- Surf
 - Recover
 - Toxic
 - Haze
@@ -701,12 +701,12 @@ Jolly Nature
 - Flip Turn
 - Psychic Fangs
 
-Pelipper @ Damp Rock
+Pelipper @ Leftovers
 Ability: Drizzle
 Tera Type: Water
 EVs: 248 HP / 8 SpA / 252 SpD
 Calm Nature
-- Scald
+- Surf
 - Hurricane
 - Roost
 - U-turn
@@ -893,7 +893,7 @@ Tera Type: Fairy
 EVs: 252 HP / 252 SpA / 4 SpD
 Modest Nature
 - Hyper Voice
-- Mystical Fire
+- Shadow Ball
 - Calm Mind
 - Protect
 
@@ -947,7 +947,7 @@ Jolly Nature
 - Earthquake
 - U-turn
 - Stone Edge
-- Knock Off
+- Rock Slide
 
 Clodsire @ Black Sludge
 Ability: Unaware
@@ -1007,7 +1007,7 @@ Impish Nature
 - Earthquake
 - U-turn
 - Stealth Rock
-- Knock Off
+- Rock Slide
 
 Gholdengo @ Choice Specs
 Ability: Good as Gold
@@ -1269,7 +1269,7 @@ Impish Nature
 - Earthquake
 - U-turn
 - Stealth Rock
-- Knock Off
+- Rock Slide
 
 Corviknight @ Leftovers
 Ability: Pressure
@@ -1508,7 +1508,7 @@ Tera Type: Fairy
 EVs: 252 HP / 252 SpA / 4 Spe
 Modest Nature
 - Hyper Voice
-- Mystical Fire
+- Psychic
 - Shadow Ball
 - Protect
 
@@ -2072,12 +2072,12 @@ Careful Nature
 - Protect""",
 
     # Team 3 — Rain offense
-    """Pelipper @ Damp Rock
+    """Pelipper @ Leftovers
 Ability: Drizzle
 Tera Type: Water
 EVs: 248 HP / 8 SpA / 252 SpD
 Calm Nature
-- Scald
+- Surf
 - Hurricane
 - Protect
 - U-turn
