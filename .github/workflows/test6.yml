@@ -1,0 +1,28 @@
+name: Test6
+on:
+  workflow_dispatch:
+jobs:
+  train:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - format: gen9randombattle
+          - format: gen9ou
+    steps:
+      - run: echo "training ${{ matrix.format }}"
+      - name: Upload model
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: model-${{ matrix.format }}
+          path: data/
+          if-no-files-found: warn
+          retention-days: 90
+  package:
+    needs: train
+    runs-on: ubuntu-latest
+    if: ${{ always() }}
+    steps:
+      - run: echo "packaging"
