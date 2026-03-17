@@ -231,6 +231,16 @@ if POKE_ENV_AVAILABLE:
             # Track previous faint counts for shaped reward (keyed by id(battle))
             self._prev_state: dict[int, dict[str, int]] = {}
 
+        def order_to_action(self, order: Any, battle: Any) -> int:
+            # poke-env bug: two-turn moves (Dig, Fly, etc.) are "locked in" on
+            # turn 2 and don't appear in battle.available_moves, causing
+            # singles_env.order_to_action to raise ValueError recursively until
+            # RecursionError. Fall back to action 0 (switch slot 0) safely.
+            try:
+                return super().order_to_action(order, battle)
+            except (ValueError, RecursionError):
+                return 0
+
         def embed_battle(self, battle: AbstractBattle) -> np.ndarray:
             return build_observation(battle)
 
