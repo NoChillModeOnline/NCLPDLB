@@ -235,10 +235,16 @@ if POKE_ENV_AVAILABLE:
             # poke-env bug: two-turn moves (Dig, Fly, etc.) are "locked in" on
             # turn 2 and don't appear in battle.available_moves, causing
             # singles_env.order_to_action to raise ValueError recursively until
-            # RecursionError. Fall back to action 0 (switch slot 0) safely.
+            # RecursionError. Fall back to action 0 (switch slot 0), which is
+            # always legal in a 6-slot team and handled by strict=False training.
             try:
                 return super().order_to_action(order, battle, **kwargs)
-            except (ValueError, RecursionError):
+            except (ValueError, RecursionError) as exc:
+                log.warning(
+                    "[BattleEnv] order_to_action fallback (poke-env two-turn move bug): "
+                    "%s — returning action 0",
+                    exc,
+                )
                 return 0
 
         def embed_battle(self, battle: AbstractBattle) -> np.ndarray:
