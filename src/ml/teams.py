@@ -2893,7 +2893,7 @@ EVs: 252 SpA / 4 SpD / 252 Spe
 Timid Nature
 - Hyper Voice
 - Shadow Ball
-- Mystical Fire
+- Psychic
 - Psyshock
 
 Umbreon @ Leftovers
@@ -3949,7 +3949,7 @@ Tera Type: Fairy
 EVs: 252 SpA / 4 SpD / 252 Spe
 Timid Nature
 - Hyper Voice
-- Mystical Fire
+- Icy Wind
 - Shadow Ball
 - Protect
 """,
@@ -4036,7 +4036,7 @@ Tera Type: Fairy
 EVs: 252 SpA / 4 SpD / 252 Spe
 Timid Nature
 - Hyper Voice
-- Mystical Fire
+- Icy Wind
 - Shadow Ball
 - Protect
 
