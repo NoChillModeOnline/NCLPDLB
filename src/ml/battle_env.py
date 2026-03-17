@@ -418,6 +418,16 @@ if POKE_ENV_AVAILABLE:
             }
             self._prev_state: dict[int, dict[str, int]] = {}
 
+        def teampreview(self, battle: Any) -> str:
+            # VGC formats require choosing max_team_size (4) Pokémon from a
+            # 6-mon team. poke-env's default DoublesEnv teampreview can send
+            # duplicate slot numbers when team_size > max_team_size, causing
+            # PS_ERROR "The Pokémon in slot N can only switch in once" and a
+            # 40-minute room-expiry hang. Explicitly send /choose order with
+            # the first max_team_size distinct 1-indexed slots.
+            n = getattr(battle, "max_team_size", len(battle.team))
+            return "/choose order " + " ".join(str(i + 1) for i in range(n))
+
         def embed_battle(self, battle: Any) -> np.ndarray:
             return build_doubles_observation(battle)
 
