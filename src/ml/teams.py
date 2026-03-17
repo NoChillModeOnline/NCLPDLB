@@ -2285,15 +2285,15 @@ Jolly Nature
 - Drain Punch
 - U-turn
 
-Calyrex-Shadow @ Focus Sash
-Ability: As One (Spectrier)
-Tera Type: Ghost
+Mewtwo @ Focus Sash
+Ability: Pressure
+Tera Type: Psychic
 EVs: 252 SpA / 4 SpD / 252 Spe
 Timid Nature
-- Astral Barrage
-- Psyshock
-- Nasty Plot
-- Protect
+- Psystrike
+- Aura Sphere
+- Ice Beam
+- Calm Mind
 
 Gholdengo @ Choice Scarf
 Ability: Good as Gold
@@ -2328,25 +2328,25 @@ Timid Nature
 
     # Team 2 — Calyrex-Shadow Balance
     """\
-Calyrex-Shadow @ Choice Scarf
-Ability: As One (Spectrier)
+Lunala @ Choice Scarf
+Ability: Shadow Shield
 Tera Type: Ghost
 EVs: 252 SpA / 4 SpD / 252 Spe
 Timid Nature
-- Astral Barrage
+- Moongeist Beam
 - Psyshock
 - Energy Ball
 - Trick
 
-Eternatus @ Power Herb
+Eternatus @ Choice Specs
 Ability: Pressure
 Tera Type: Poison
 EVs: 252 SpA / 4 SpD / 252 Spe
 Timid Nature
-- Eternabeam
-- Dynamax Cannon
+- Dragon Pulse
 - Sludge Bomb
 - Flamethrower
+- Energy Ball
 
 Necrozma-Dusk-Mane @ Leftovers
 Ability: Prism Armor
@@ -2385,7 +2385,7 @@ EVs: 252 HP / 4 Atk / 252 Def
 Impish Nature
 - Earthquake
 - U-turn
-- Defog
+- Rock Slide
 - Stealth Rock
 """,
 
@@ -2776,20 +2776,20 @@ Ability: Mycelium Might
 Tera Type: Grass
 EVs: 252 HP / 4 Def / 252 SpD
 Calm Nature
-- Spore
+- Rapid Spin
 - Leech Seed
 - Giga Drain
 - Earth Power
 
-Quaquaval @ Life Orb
-Ability: Moxie
+Araquanid @ Choice Band
+Ability: Water Bubble
 Tera Type: Water
-EVs: 252 Atk / 4 Def / 252 Spe
-Jolly Nature
-- Aqua Step
-- Close Combat
-- Swords Dance
-- Brave Bird
+EVs: 248 HP / 252 Atk / 8 SpD
+Adamant Nature
+- Liquidation
+- Leech Life
+- Lunge
+- Poison Jab
 """,
 
     # Team 3 — Lycanroc-Midnight Balance
@@ -3550,7 +3550,7 @@ IVs: 0 Spe
 - Mach Punch
 - Bulk Up
 
-Drifloon @ Berry Juice
+Drifloon @ Oran Berry
 Ability: Unburden
 Level: 5
 Tera Type: Flying
@@ -3561,39 +3561,41 @@ Modest Nature
 - Will-O-Wisp
 - Trick Room
 
-Porygon @ Eviolite
-Ability: Trace
+Bronzor @ Eviolite
+Ability: Levitate
+Level: 5
+Tera Type: Steel
+EVs: 228 HP / 60 Def / 188 SpD
+Sassy Nature
+IVs: 0 Atk 0 Spe
+- Trick Room
+- Gyro Ball
+- Flash Cannon
+- Stealth Rock
+
+Munchlax @ Eviolite
+Ability: Thick Fat
 Level: 5
 Tera Type: Normal
-EVs: 236 HP / 236 SpA / 36 SpD
+EVs: 196 HP / 116 Def / 196 SpD
+Sassy Nature
+IVs: 0 Spe
+- Body Slam
+- Earthquake
+- Fire Punch
+- Whirlwind
+
+Magnemite @ Eviolite
+Ability: Magnet Pull
+Level: 5
+Tera Type: Electric
+EVs: 196 HP / 236 SpA / 76 SpD
 Quiet Nature
 IVs: 0 Spe
-- Tri Attack
-- Shadow Ball
 - Thunderbolt
-- Ice Beam
-
-Shellder @ Eviolite
-Ability: Skill Link
-Level: 5
-Tera Type: Water
-EVs: 236 Atk / 36 Def / 236 Spe
-Adamant Nature
-- Icicle Spear
-- Rock Blast
-- Shell Smash
-- Razor Shell
-
-Murkrow @ Eviolite
-Ability: Prankster
-Level: 5
-Tera Type: Dark
-EVs: 36 HP / 236 SpA / 236 Spe
-Timid Nature
-- Foul Play
-- Sucker Punch
-- Nasty Plot
-- Roost
+- Flash Cannon
+- Volt Switch
+- Thunder Wave
 
 Cottonee @ Eviolite
 Ability: Prankster
@@ -3642,7 +3644,7 @@ Timid Nature
 - Cross Chop
 - Hidden Power Ice
 
-Pawniard @ Berry Juice
+Pawniard @ Eviolite
 Ability: Defiant
 Level: 5
 Tera Type: Dark
@@ -3664,16 +3666,16 @@ Jolly Nature
 - U-turn
 - Bounce
 
-Porygon @ Eviolite
-Ability: Download
+Elekid @ Life Orb
+Ability: Static
 Level: 5
-Tera Type: Normal
-EVs: 236 HP / 236 SpA / 36 SpD
-Modest Nature
-- Tri Attack
-- Shadow Ball
-- Ice Beam
+Tera Type: Electric
+EVs: 236 SpA / 36 SpD / 236 Spe
+Timid Nature
 - Thunderbolt
+- Ice Punch
+- Cross Chop
+- Psychic
 """,
 
 ]
