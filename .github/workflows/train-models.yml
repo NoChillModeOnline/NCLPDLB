@@ -39,6 +39,30 @@ jobs:
             team_format: gen9vgc2026regi
           - format: gen9vgc2026regf
             team_format: gen9vgc2026regf
+          - format: gen9randombattledoubles
+            team_format: ""
+          - format: gen9ubers
+            team_format: gen9ubers
+          - format: gen9uu
+            team_format: gen9uu
+          - format: gen9ru
+            team_format: gen9ru
+          - format: gen9nu
+            team_format: gen9nu
+          - format: gen9pu
+            team_format: gen9pu
+          - format: gen9zu
+            team_format: gen9zu
+          - format: gen9lc
+            team_format: gen9lc
+          - format: gen9doublesubers
+            team_format: gen9doublesubers
+          - format: gen9doublesuu
+            team_format: gen9doublesuu
+          - format: gen9vgc2026regfbo3
+            team_format: gen9vgc2026regfbo3
+          - format: gen9vgc2026regibo3
+            team_format: gen9vgc2026regibo3
 
     steps:
       - name: Checkout
