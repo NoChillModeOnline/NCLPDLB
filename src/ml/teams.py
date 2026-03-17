@@ -2503,7 +2503,7 @@ Ability: Regenerator
 Tera Type: Water
 EVs: 252 HP / 4 SpA / 252 SpD
 Calm Nature
-- Scald
+- Surf
 - Future Sight
 - Sludge Bomb
 - Flamethrower
@@ -2556,7 +2556,7 @@ Ability: Regenerator
 Tera Type: Water
 EVs: 252 HP / 252 Def / 4 SpA
 Bold Nature
-- Scald
+- Surf
 - Future Sight
 - Slack Off
 - Thunder Wave
@@ -2871,7 +2871,7 @@ Ability: Water Absorb
 Tera Type: Water
 EVs: 252 HP / 252 Def / 4 SpA
 Bold Nature
-- Scald
+- Surf
 - Wish
 - Protect
 - Heal Bell
@@ -2968,7 +2968,7 @@ Tera Type: Water
 EVs: 252 HP / 4 SpA / 252 SpD
 Calm Nature
 IVs: 0 Spe
-- Scald
+- Surf
 - Shadow Ball
 - Will-O-Wisp
 - Recover
@@ -3307,7 +3307,7 @@ Ability: Regenerator
 Tera Type: Rock
 EVs: 252 HP / 4 Def / 252 SpD
 Calm Nature
-- Scald
+- Surf
 - Stealth Rock
 - Recover
 - Ancient Power
@@ -3426,7 +3426,7 @@ Calm Nature
 - Ancient Power
 - Recover
 - Stealth Rock
-- Scald
+- Surf
 
 Delibird @ Life Orb
 Ability: Hustle
@@ -3928,7 +3928,7 @@ Tera Type: Water
 EVs: 252 HP / 4 SpA / 252 SpD
 Sassy Nature
 IVs: 0 Spe
-- Scald
+- Surf
 - Sludge Bomb
 - Future Sight
 - Flamethrower
