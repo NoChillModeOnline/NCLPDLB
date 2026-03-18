@@ -231,6 +231,22 @@ if POKE_ENV_AVAILABLE:
             # Track previous faint counts for shaped reward (keyed by id(battle))
             self._prev_state: dict[int, dict[str, int]] = {}
 
+        def order_to_action(self, order: Any, battle: Any, **kwargs: Any) -> int:
+            # poke-env bug: two-turn moves (Dig, Fly, etc.) are "locked in" on
+            # turn 2 and don't appear in battle.available_moves, causing
+            # singles_env.order_to_action to raise ValueError recursively until
+            # RecursionError. Fall back to action 0 (switch slot 0), which is
+            # always legal in a 6-slot team and handled by strict=False training.
+            try:
+                return super().order_to_action(order, battle, **kwargs)
+            except (ValueError, RecursionError) as exc:
+                log.warning(
+                    "[BattleEnv] order_to_action fallback (poke-env two-turn move bug): "
+                    "%s — returning action 0",
+                    exc,
+                )
+                return 0
+
         def embed_battle(self, battle: AbstractBattle) -> np.ndarray:
             return build_observation(battle)
 
@@ -401,6 +417,16 @@ if POKE_ENV_AVAILABLE:
                 for agent in self.possible_agents
             }
             self._prev_state: dict[int, dict[str, int]] = {}
+
+        def teampreview(self, battle: Any) -> str:
+            # VGC formats require choosing max_team_size (4) Pokémon from a
+            # 6-mon team. poke-env's default DoublesEnv teampreview can send
+            # duplicate slot numbers when team_size > max_team_size, causing
+            # PS_ERROR "The Pokémon in slot N can only switch in once" and a
+            # 40-minute room-expiry hang. Explicitly send /choose order with
+            # the first max_team_size distinct 1-indexed slots.
+            n = getattr(battle, "max_team_size", len(battle.team))
+            return "/choose order " + " ".join(str(i + 1) for i in range(n))
 
         def embed_battle(self, battle: Any) -> np.ndarray:
             return build_doubles_observation(battle)
