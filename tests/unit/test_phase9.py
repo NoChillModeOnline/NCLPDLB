@@ -8,6 +8,9 @@ Requirements covered:
   CMD-01, CMD-02, CMD-03, CMD-04 — command_registry workstream
   TEAM-01, TEAM-02, TEAM-03, TEAM-04 — team_import workstream
 """
+import csv
+from pathlib import Path
+
 import pytest
 from src.bot.constants import SUPPORTED_FORMATS
 
@@ -15,44 +18,68 @@ from src.bot.constants import SUPPORTED_FORMATS
 # ── CMD-01: CSV schema ─────────────────────────────────────────────────────────
 
 def test_csv_schema_valid():
-    """
-    CMD-01: discord_commands.csv exists at project root with required columns:
-    Category, Command, Description, Parameters, Permission Required, Notes.
-    """
-    pytest.fail("CMD-01: not implemented")
+    """CMD-01: discord_commands.csv exists with required columns."""
+    csv_path = Path(__file__).parent.parent.parent / "discord_commands.csv"
+    assert csv_path.exists(), f"discord_commands.csv not found at {csv_path}"
+
+    with open(csv_path, newline="", encoding="utf-8") as f:
+        reader = csv.DictReader(f)
+        fieldnames = reader.fieldnames or []
+
+    required = {"Category", "Command", "Description", "Parameters", "Permission Required", "Notes"}
+    missing = required - set(fieldnames)
+    assert not missing, f"CSV missing required columns: {missing}"
 
 
 # ── CMD-02: Drift check ────────────────────────────────────────────────────────
 
 def test_csv_drift_check():
-    """
-    CMD-02: drift_check_commands() returns a set of command names that are
-    registered in the bot tree but absent from commands.csv.
-    An empty set means no drift.
-    """
-    pytest.fail("CMD-02: not implemented")
+    """CMD-02: drift_check_commands returns commands in tree but not in CSV."""
+    from src.bot.main import drift_check_commands
+
+    csv_names = {"help", "draft", "pick"}
+    registered = {"help", "draft", "pick", "undocumented_cmd"}
+    drift = drift_check_commands(csv_names, registered)
+    assert drift == {"undocumented_cmd"}, f"Expected {{'undocumented_cmd'}}, got {drift}"
 
 
 # ── CMD-03: New row picked up ──────────────────────────────────────────────────
 
 def test_csv_new_row_picked_up():
-    """
-    CMD-03: When a new row is added to commands.csv, drift_check_commands()
-    no longer returns that command in the drift set (i.e., drift set shrinks
-    when CSV is updated alongside cog implementation).
-    """
-    pytest.fail("CMD-03: not implemented")
+    """CMD-03: When CSV is updated to include a command, drift set goes to empty."""
+    from src.bot.main import drift_check_commands
+
+    # Before CSV update: 'mystery' is in registered but not CSV
+    drift_before = drift_check_commands(
+        csv_names={"help", "draft"},
+        registered_names={"help", "draft", "mystery"},
+    )
+    assert "mystery" in drift_before
+
+    # After CSV update: 'mystery' row added to csv_names
+    drift_after = drift_check_commands(
+        csv_names={"help", "draft", "mystery"},
+        registered_names={"help", "draft", "mystery"},
+    )
+    assert len(drift_after) == 0, f"Expected empty drift after CSV update, got {drift_after}"
 
 
 # ── CMD-04: /help reflects CSV ────────────────────────────────────────────────
 
 def test_help_output_reflects_csv():
-    """
-    CMD-04: build_help_embed() returns a discord.Embed where the field names
-    match the Category values from commands.csv and field values list commands
-    from those categories.
-    """
-    pytest.fail("CMD-04: not implemented")
+    """CMD-04: build_help_embed returns embed with fields matching CSV categories."""
+    from src.bot.cogs.misc import build_help_embed
+
+    csv_path = Path(__file__).parent.parent.parent / "discord_commands.csv"
+    embed = build_help_embed(csv_path)
+
+    assert embed.title == "Bot Commands"
+    assert len(embed.fields) > 0, "Embed should have at least one category field"
+
+    # Verify known categories from existing CSV are present
+    field_names = {f.name for f in embed.fields}
+    assert "Draft" in field_names, f"Expected 'Draft' category, got: {field_names}"
+    assert "Team" in field_names, f"Expected 'Team' category, got: {field_names}"
 
 
 # ── TEAM-01: .txt parse ───────────────────────────────────────────────────────

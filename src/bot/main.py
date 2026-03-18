@@ -52,6 +52,7 @@ COGS = [
     "src.bot.cogs.admin",
     "src.bot.cogs.stats",
     "src.bot.cogs.sheet",    # Google Sheets management commands
+    "src.bot.cogs.misc",     # /help and utility commands
 ]
 
 intents = discord.Intents.default()
