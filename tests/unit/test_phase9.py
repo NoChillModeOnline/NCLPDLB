@@ -90,7 +90,24 @@ def test_team_import_txt_parse():
     decode_attachment_bytes() returns a str that TeamService.import_showdown()
     can parse successfully (at least 1 Pokemon found).
     """
-    pytest.fail("TEAM-01: not implemented")
+    from src.bot.cogs.team import decode_attachment_bytes
+
+    # Simulate bytes content of a .txt Showdown export
+    sample_bytes = (
+        b"Garchomp @ Choice Scarf\n"
+        b"Ability: Rough Skin\n"
+        b"EVs: 252 Atk / 4 SpD / 252 Spe\n"
+        b"Jolly Nature\n"
+        b"- Scale Shot\n"
+        b"\n"
+        b"Corviknight @ Leftovers\n"
+        b"Ability: Pressure\n"
+        b"- Body Press\n"
+    )
+    result = decode_attachment_bytes(sample_bytes)
+    assert isinstance(result, str), "decode_attachment_bytes must return str"
+    assert "Garchomp" in result, "Decoded text should contain the Pokemon name"
+    assert "Corviknight" in result, "Decoded text should contain the second Pokemon name"
 
 
 # ── TEAM-02: Format autocomplete ─────────────────────────────────────────────
@@ -120,7 +137,19 @@ def test_team_import_confirmation_flow():
     with title containing the format display name and a 'Pokemon' field listing
     pokemon names with their held items.
     """
-    pytest.fail("TEAM-03: not implemented")
+    from src.bot.views.team_import_view import build_confirm_embed
+
+    pokemon_list = ["Garchomp @ Choice Scarf", "Corviknight @ Leftovers"]
+    embed = build_confirm_embed("gen9ou", pokemon_list)
+
+    assert "Gen 9 OU" in embed.title, (
+        f"Embed title should contain format display name 'Gen 9 OU', got: {embed.title!r}"
+    )
+    pokemon_fields = [f for f in embed.fields if f.name == "Pokemon"]
+    assert pokemon_fields, f"Embed must have a 'Pokemon' field, got fields: {[f.name for f in embed.fields]}"
+    assert "Garchomp @ Choice Scarf" in pokemon_fields[0].value, (
+        f"Pokemon field must contain 'Garchomp @ Choice Scarf', got: {pokemon_fields[0].value!r}"
+    )
 
 
 # ── TEAM-04: Per-format storage ───────────────────────────────────────────────
@@ -131,4 +160,14 @@ def test_per_format_storage():
     a different key than _cache_key(guild_id, player_id, format_key="gen9uu"), and
     both differ from the legacy key _cache_key(guild_id, player_id).
     """
-    pytest.fail("TEAM-04: not implemented")
+    from src.services.team_service import TeamService
+
+    ts = TeamService()
+    key_ou = ts._cache_key("guild1", "player1", format_key="gen9ou")
+    key_uu = ts._cache_key("guild1", "player1", format_key="gen9uu")
+    key_legacy = ts._cache_key("guild1", "player1")
+
+    assert key_ou != key_uu, f"gen9ou and gen9uu keys must differ: {key_ou!r} == {key_uu!r}"
+    assert key_ou != key_legacy, f"format key must differ from legacy key: {key_ou!r} == {key_legacy!r}"
+    assert key_uu != key_legacy, f"format key must differ from legacy key: {key_uu!r} == {key_legacy!r}"
+    assert key_legacy == "guild1:player1", f"Legacy key format unchanged: {key_legacy!r}"

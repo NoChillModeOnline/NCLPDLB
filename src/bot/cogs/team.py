@@ -1,15 +1,34 @@
 """
 Team Cog — Roster management, trades, Showdown import/export, console legality.
 """
+import re
+
 import discord
 from discord import app_commands
 from discord.ext import commands
 
+from src.bot.constants import SUPPORTED_FORMATS
+from src.bot.views.team_import_view import TeamImportConfirmView, build_confirm_embed
 from src.bot.views.team_view import TeamEmbedView
 from src.services.analytics_service import AnalyticsService
 from src.services.team_service import TeamService
 
 
+def decode_attachment_bytes(data: bytes) -> str:
+    """Decode raw bytes from a Discord .txt attachment into a UTF-8 string.
+
+    Args:
+        data: Raw bytes from discord.Attachment.read().
+
+    Returns:
+        Decoded string using UTF-8; undecodable bytes are replaced with the
+        Unicode replacement character (U+FFFD).
+    """
+    return data.decode("utf-8", errors="replace")
+
+
+# NOTE: ShowdownImportModal is kept as a fallback. The primary import path is now
+# the /teamimport file-attachment command. This modal may be removed in a future phase.
 class ShowdownImportModal(discord.ui.Modal, title="Import Showdown Team"):
     team_text = discord.ui.TextInput(
         label="Paste your Showdown team export below",
@@ -193,10 +212,78 @@ class TeamCog(commands.Cog, name="Team"):
             await interaction.followup.send(f"❌ {result.error}", ephemeral=True)
 
     # ── /teamimport ──────────────────────────────────────────
-    @app_commands.command(name="teamimport", description="Import a team from Pokemon Showdown export format")
-    async def teamimport(self, interaction: discord.Interaction) -> None:
-        modal = ShowdownImportModal(team_service=self.team_service)
-        await interaction.response.send_modal(modal)
+    @app_commands.command(
+        name="teamimport",
+        description="Import a Showdown team from a .txt file attachment",
+    )
+    @app_commands.describe(
+        format="Format to store the team under (e.g. Gen 9 OU, VGC 2024 Reg G)",
+        team_file="Your Showdown team export as a .txt file",
+    )
+    async def teamimport(
+        self,
+        interaction: discord.Interaction,
+        format: str,
+        team_file: discord.Attachment,
+    ) -> None:
+        """Import a team from a .txt Showdown export with per-format storage."""
+        # Validate file type
+        if not team_file.filename.lower().endswith(".txt"):
+            await interaction.response.send_message(
+                "Please attach a `.txt` Showdown export file.", ephemeral=True
+            )
+            return
+
+        await interaction.response.defer(ephemeral=True)
+
+        # Decode attachment
+        raw_bytes = await team_file.read()
+        showdown_text = decode_attachment_bytes(raw_bytes)
+
+        if not showdown_text.strip():
+            await interaction.followup.send(
+                "The attached file appears to be empty.", ephemeral=True
+            )
+            return
+
+        # Build preview pokemon list for confirmation embed
+        # Parse "Name @ Item" lines from the first non-blank, non-indented lines
+        pokemon_preview: list[str] = []
+        for line in showdown_text.strip().splitlines():
+            line = line.strip()
+            if not line or line.startswith("-") or line.startswith("Ability:") or \
+                    line.startswith("EVs:") or line.startswith("IVs:") or \
+                    line.endswith("Nature") or line.startswith("Level") or \
+                    line.startswith("Shiny") or line.startswith("Happiness"):
+                continue
+            # First line of a new Pokemon block — may have "@ Item"
+            if re.match(r"^[A-Za-z]", line):
+                pokemon_preview.append(line)
+
+        # Build confirmation view and embed
+        view = TeamImportConfirmView(
+            team_service=self.team_service,
+            guild_id=str(interaction.guild_id),
+            player_id=str(interaction.user.id),
+            showdown_text=showdown_text,
+            format_key=format,
+        )
+        embed = build_confirm_embed(format, pokemon_preview)
+        await interaction.followup.send(embed=embed, view=view, ephemeral=True)
+
+    @teamimport.autocomplete("format")
+    async def teamimport_format_autocomplete(
+        self,
+        interaction: discord.Interaction,
+        current: str,
+    ) -> list[app_commands.Choice[str]]:
+        """Filter SUPPORTED_FORMATS by the user's current input."""
+        current_lower = current.lower()
+        return [
+            app_commands.Choice(name=display, value=key)
+            for key, display in SUPPORTED_FORMATS.items()
+            if current_lower in display.lower() or current_lower in key.lower()
+        ][:25]
 
     # ── /teamexport ──────────────────────────────────────────
     @app_commands.command(name="teamexport", description="Export your team in Pokemon Showdown format")
