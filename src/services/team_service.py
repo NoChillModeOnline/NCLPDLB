@@ -43,7 +43,21 @@ class LegalityResult:
 
 
 class TeamService:
-    def _cache_key(self, guild_id: str, player_id: str) -> str:
+    def _cache_key(self, guild_id: str, player_id: str, format_key: str = "") -> str:
+        """Build a roster cache key.
+
+        Args:
+            guild_id: Discord guild ID.
+            player_id: Discord user ID.
+            format_key: Optional Showdown format string (e.g. "gen9ou"). When empty,
+                returns the legacy key for backward compatibility.
+
+        Returns:
+            "{guild_id}:{player_id}" when format_key is empty, otherwise
+            "{guild_id}:{player_id}:{format_key}".
+        """
+        if format_key:
+            return f"{guild_id}:{player_id}:{format_key}"
         return f"{guild_id}:{player_id}"
 
     async def get_team(self, guild_id: str, player_id: str) -> TeamRoster | None:
@@ -200,6 +214,7 @@ class TeamService:
         guild_id: str,
         player_id: str,
         showdown_text: str,
+        format_key: str = "",
     ) -> ImportResult:
         """
         Parse a Showdown team export and update the player's roster.
@@ -239,7 +254,7 @@ class TeamService:
         if not pokemon_list:
             return ImportResult(success=False, error="No valid Pokemon found. Check the Showdown export format.")
 
-        key = self._cache_key(guild_id, player_id)
+        key = self._cache_key(guild_id, player_id, format_key)
         roster = _roster_cache.get(key) or TeamRoster(player_id=player_id, guild_id=guild_id)
         roster.pokemon = pokemon_list
         _roster_cache[key] = roster
