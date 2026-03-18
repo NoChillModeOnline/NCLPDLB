@@ -110,15 +110,7 @@ jobs:
           echo "--- Installing Showdown dependencies ---"
           npm install
           echo "--- Patching Showdown config (disable OTS for VGC formats) ---"
-          cat > /tmp/showdown/config/config.js << 'EOF'
-'use strict';
-exports.customFormats = {
-  'gen9vgc2026regi':    { openTeamSheets: false },
-  'gen9vgc2026regf':    { openTeamSheets: false },
-  'gen9vgc2026regibo3': { openTeamSheets: false },
-  'gen9vgc2026regfbo3': { openTeamSheets: false },
-};
-EOF
+          node -e "require('fs').writeFileSync('/tmp/showdown/config/config.js', [\"'use strict';\", 'exports.customFormats = {', \"  'gen9vgc2026regi':    { openTeamSheets: false },\", \"  'gen9vgc2026regf':    { openTeamSheets: false },\", \"  'gen9vgc2026regibo3': { openTeamSheets: false },\", \"  'gen9vgc2026regfbo3': { openTeamSheets: false },\", '};', ''].join('\\n'));"
           echo "--- Starting Showdown server ---"
           node pokemon-showdown start --no-security --max-old-space-size=3000 > /tmp/showdown.log 2>&1 &
           SHOWDOWN_PID=$!
