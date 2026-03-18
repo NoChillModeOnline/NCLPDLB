@@ -4,38 +4,42 @@ on:
   workflow_dispatch:
     inputs:
       timesteps:
-        description: "Training steps per format"
+        description: "Training steps per format (manual production runs only — CI uses matrix.timesteps)"
         required: false
         default: "500000"
 
 jobs:
   train:
     runs-on: ubuntu-latest
-    timeout-minutes: 340
+    timeout-minutes: 90
     strategy:
       fail-fast: false
       matrix:
         include:
           - format: gen9randombattle
             team_format: ""
+            timesteps: 100000
           - format: gen9ou
             team_format: gen9ou
+            timesteps: 100000
           - format: gen9doublesou
             team_format: gen9doublesou
+            timesteps: 50000
           - format: gen9nationaldex
             team_format: gen9nationaldex
+            timesteps: 100000
           - format: gen9monotype
             team_format: gen9monotype
+            timesteps: 100000
           - format: gen9anythinggoes
             team_format: gen9anythinggoes
-          - format: gen7randombattle
-            team_format: ""
-          - format: gen6randombattle
-            team_format: ""
+            timesteps: 100000
           - format: gen9vgc2026regi
             team_format: gen9vgc2026regi
+            timesteps: 50000
           - format: gen9vgc2026regf
             team_format: gen9vgc2026regf
+            timesteps: 50000
 
     steps:
       - name: Checkout
@@ -51,27 +55,34 @@ jobs:
         run: |
           pip install --upgrade pip
           pip install -r requirements.txt
+          pip install poke-env==0.12.1
           pip install torch --index-url https://download.pytorch.org/whl/cpu
-          pip install stable-baselines3>=2.2.0 tensorboard>=2.16.0 poke-env>=0.8.1
+          pip install stable-baselines3>=2.2.0 tensorboard>=2.16.0
 
       - name: Set up Node.js
         uses: actions/setup-node@v4
         with:
           node-version: "20"
+          cache: "npm"
+          cache-dependency-path: /tmp/showdown/package-lock.json
 
       - name: Start Pokemon Showdown server
         run: |
           git clone --depth 1 https://github.com/smogon/pokemon-showdown.git /tmp/showdown
           cd /tmp/showdown
-          node pokemon-showdown start --no-security &
-          for i in $(seq 1 20); do
-            nc -z localhost 8000 && echo "Showdown ready" && break
-            echo "Waiting... ($i/20)" && sleep 3
+          npm install
+          node pokemon-showdown start --no-security --max-old-space-size=3000 &
+
+          until curl --output /dev/null --silent --head --fail http://localhost:8000; do
+            sleep 0.01
           done
 
+          sleep 1
+
       - name: Train ${{ matrix.format }}
+        timeout-minutes: 60
         run: |
-          ARGS="--format ${{ matrix.format }} --timesteps ${{ github.event.inputs.timesteps }} --save-dir data/ml/policy"
+          ARGS="--format ${{ matrix.format }} --timesteps ${{ matrix.timesteps }} --save-dir data/ml/policy"
           if [ -n "${{ matrix.team_format }}" ]; then
             ARGS="$ARGS --team-format ${{ matrix.team_format }}"
           fi
