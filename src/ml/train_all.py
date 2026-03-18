@@ -18,7 +18,7 @@ Format → Training format mapping
   gen6randombattle       → gen6randombattle       (direct, no teams)
   gen9vgc2026regi        → gen9vgc2026regi        (direct, RotatingTeambuilder, doubles)
   gen9vgc2026regf        → gen9vgc2026regf        (direct, RotatingTeambuilder, doubles)
-  gen9randombattledoubles → gen9randombattledoubles (direct, no teams, doubles)
+  gen9randomdoublesbattle → gen9randomdoublesbattle (direct, no teams, doubles)
   gen9ubers              → gen9ubers              (direct, RotatingTeambuilder)
   gen9uu                 → gen9uu                 (direct, RotatingTeambuilder)
   gen9ru                 → gen9ru                 (direct, RotatingTeambuilder)
@@ -64,7 +64,7 @@ TRAINING_MAP: dict[str, tuple[str | None, str | None]] = {
     "gen6randombattle"      : ("gen6randombattle",      None),
     "gen9vgc2026regi"       : ("gen9vgc2026regi",       "gen9vgc2026regi"),
     "gen9vgc2026regf"       : ("gen9vgc2026regf",       "gen9vgc2026regf"),
-    "gen9randombattledoubles": ("gen9randombattledoubles", None),
+    "gen9randomdoublesbattle": ("gen9randomdoublesbattle", None),
     "gen9ubers"             : ("gen9ubers",             "gen9ubers"),
     "gen9uu"                : ("gen9uu",                "gen9uu"),
     "gen9ru"                : ("gen9ru",                "gen9ru"),

@@ -97,7 +97,7 @@ DEFAULT_SAVE_DIR   = "data/ml/policy"
 # Formats that use the doubles environment
 DOUBLES_FORMATS = {
     "gen9doublesou",
-    "gen9randombattledoubles",
+    "gen9randomdoublesbattle",
     "gen9doublesubers",
     "gen9doublesuu",
     "gen9vgc2026regi",
