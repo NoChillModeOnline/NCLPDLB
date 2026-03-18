@@ -4,6 +4,7 @@ Discord.py 2.x with slash commands, views, and cogs.
 Cross-platform compatible (Windows, macOS, Linux).
 """
 import asyncio
+import csv
 import logging
 import sys
 from pathlib import Path
@@ -29,6 +30,19 @@ logging.basicConfig(
     ],
 )
 log = logging.getLogger("pokemon_draft_bot")
+
+
+def drift_check_commands(csv_names: set[str], registered_names: set[str]) -> set[str]:
+    """Return commands registered in the bot tree but absent from commands.csv.
+
+    Args:
+        csv_names: Set of command names from CSV (leading '/' stripped).
+        registered_names: Set of command names from bot.tree.get_commands().
+
+    Returns:
+        Set of names in registered_names but not in csv_names (drift).
+    """
+    return registered_names - csv_names
 
 # ── Bot Setup ─────────────────────────────────────────────────
 COGS = [
@@ -61,6 +75,24 @@ class DraftLeagueBot(commands.Bot):
                 log.info(f"Loaded cog: {cog}")
             except Exception as e:
                 log.error(f"Failed to load cog {cog}: {e}", exc_info=True)
+
+        # CSV drift check — log any commands registered but missing from discord_commands.csv
+        csv_path = Path(__file__).parent.parent.parent / "discord_commands.csv"
+        if csv_path.exists():
+            with open(csv_path, newline="", encoding="utf-8") as f:
+                reader = csv.DictReader(f)
+                csv_names = {row["Command"].lstrip("/") for row in reader}
+            registered = {cmd.name for cmd in self.tree.get_commands()}
+            drift = drift_check_commands(csv_names, registered)
+            if drift:
+                log.warning(
+                    "Commands registered but missing from commands.csv: %s",
+                    sorted(drift),
+                )
+            else:
+                log.info("Command registry drift check passed — no missing CSV entries.")
+        else:
+            log.warning("discord_commands.csv not found at %s — skipping drift check.", csv_path)
 
         # Sync slash commands to test guild first (instant), then globally
         if settings.discord_guild_id:
