@@ -88,6 +88,12 @@ def _model_done(spar_fmt: str, save_dir: Path) -> bool:
     return (save_dir / spar_fmt / "final_model.zip").exists()
 
 
+def _resume_checkpoint(spar_fmt: str, save_dir: Path) -> Path | None:
+    """Return latest.zip path if an in-progress checkpoint exists, else None."""
+    p = save_dir / spar_fmt / "latest.zip"
+    return p if p.exists() else None
+
+
 def train_format(
     spar_fmt: str,
     train_fmt: str,
@@ -105,12 +111,16 @@ def train_format(
     If `team_fmt` is provided, passes --team-format to train_policy.py so it uses
     a RotatingTeambuilder with the appropriate pre-built teams.
 
+    Auto-resumes from latest.zip if an in-progress checkpoint exists.
+
     Returns True on success, False on failure.
     """
     import subprocess
 
+    resume_path = _resume_checkpoint(spar_fmt, save_dir)
     log.info(f"[train_all] {spar_fmt}: training directly on {train_fmt}"
-             + (f" with teams from {team_fmt}" if team_fmt else ""))
+             + (f" with teams from {team_fmt}" if team_fmt else "")
+             + (f" [RESUMING from {resume_path.name}]" if resume_path else ""))
 
     # ── Spawn fresh subprocess for each training run ────────────────
     project_root = Path(__file__).parents[2]
@@ -123,13 +133,30 @@ def train_format(
     ]
     if team_fmt:
         cmd += ["--team-format", team_fmt]
+    if resume_path:
+        cmd += ["--resume", str(resume_path)]
 
     log.info(f"[train_all] running: {' '.join(cmd)}")
-    result = subprocess.run(cmd, cwd=str(project_root))
+    result = subprocess.run(
+        cmd,
+        cwd=str(project_root),
+        capture_output=True,
+        text=True,
+    )
     ok = result.returncode == 0
 
+    if result.stdout:
+        for line in result.stdout.splitlines():
+            log.info(f"[{spar_fmt}] {line}")
+    if result.stderr:
+        for line in result.stderr.splitlines():
+            (log.info if ok else log.error)(f"[{spar_fmt}] {line}")
+
     if not ok:
-        log.error(f"[train_all] {spar_fmt}: subprocess exited with code {result.returncode}")
+        log.error(
+            f"[train_all] {spar_fmt}: subprocess exited with code {result.returncode}. "
+            f"Check output above for the root cause."
+        )
 
     return ok
 
@@ -189,7 +216,7 @@ def run(
     print("  Training Summary")
     print(f"{'='*60}")
     for fmt, status in results.items():
-        icon = {"done": "✓", "already_done": "–", "skipped": "○", "failed": "✗"}.get(status, "?")
+        icon = {"done": "OK", "already_done": "--", "skipped": "~~", "failed": "XX"}.get(status, "??")
         print(f"  {icon}  {fmt:<25} {status}")
     print()
 

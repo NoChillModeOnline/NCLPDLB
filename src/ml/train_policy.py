@@ -36,6 +36,7 @@ from __future__ import annotations
 import argparse
 import logging
 import shutil
+import socket
 from pathlib import Path
 from typing import Any
 
@@ -69,6 +70,24 @@ from src.ml.battle_env import (
 )
 
 # ── Constants ─────────────────────────────────────────────────────────────────
+
+SHOWDOWN_HOST = "127.0.0.1"
+SHOWDOWN_PORT = 8000
+
+
+def _check_showdown_server() -> None:
+    """Raise RuntimeError if the local Showdown server is not reachable."""
+    try:
+        with socket.create_connection((SHOWDOWN_HOST, SHOWDOWN_PORT), timeout=3):
+            pass
+    except OSError:
+        raise RuntimeError(
+            f"Cannot reach local Showdown server at {SHOWDOWN_HOST}:{SHOWDOWN_PORT}.\n"
+            "Start it with:\n"
+            "  cd pokemon-showdown && node pokemon-showdown start --no-security\n"
+            "See scripts/setup_showdown_server.md for full instructions."
+        )
+
 
 DEFAULT_FORMAT     = "gen9randombattle"
 DEFAULT_TIMESTEPS  = 500_000
@@ -224,6 +243,8 @@ def train(
 
     Returns the path to the final saved model zip.
     """
+    _check_showdown_server()
+
     if not POKE_ENV_AVAILABLE:
         raise RuntimeError(
             "poke-env is not installed or failed to import. "

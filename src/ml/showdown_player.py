@@ -65,6 +65,13 @@ except ImportError:
     POKE_ENV_OK = False
     Player = object  # type: ignore
 
+try:
+    from src.data.sheets import learning_sheets
+    SHEETS_AVAILABLE = True
+except ImportError:
+    learning_sheets = None  # type: ignore
+    SHEETS_AVAILABLE = False
+
 from src.ml.battle_env import POKE_ENV_AVAILABLE, build_observation
 
 # ── Bot player ────────────────────────────────────────────────────────────────
@@ -124,6 +131,21 @@ if POKE_ENV_AVAILABLE:
                 return SinglesEnv.action_to_order(action, battle)
             except Exception:
                 return self.choose_random_move(battle)
+
+        async def save_replay(self, battle: AbstractBattle) -> str | None:
+            """
+            Send /savereplay to Showdown and return the replay URL.
+
+            Returns None if the command fails or the server doesn't respond.
+            The URL is deterministic: https://replay.pokemonshowdown.com/<battle_tag>
+            """
+            try:
+                tag = battle.battle_tag
+                await self._communicator.send(f"{tag}|/savereplay")
+                return f"https://replay.pokemonshowdown.com/{tag}"
+            except Exception as exc:
+                log.warning(f"[ShowdownBotPlayer] /savereplay failed: {exc}")
+                return None
 
 else:
     class ShowdownBotPlayer:  # type: ignore
@@ -225,16 +247,28 @@ class BotChallenger:
     # ── Internal helpers ───────────────────────────────────────────────
 
     async def _wait_for_result(self) -> dict:
-        """Poll until the latest battle is finished and return the result."""
+        """Poll until the latest battle is finished, save replay URL, and return the result."""
         while True:
             await asyncio.sleep(1)
             battles = list(self._player.battles.values())
             if battles:
                 battle = battles[-1]
                 if battle.finished:
-                    return self._format_result(battle)
+                    replay_url = await self._player.save_replay(battle)
+                    result = self._format_result(battle, replay_url=replay_url)
+                    if SHEETS_AVAILABLE:
+                        learning_sheets.save_replay_url({
+                            "format":     self.fmt,
+                            "battle_id":  battle.battle_tag,
+                            "bot":        self.username,
+                            "opponent":   _get_opponent_name(battle),
+                            "winner":     result["winner"],
+                            "turns":      result["turns"],
+                            "replay_url": replay_url or "",
+                        })
+                    return result
 
-    def _format_result(self, battle: AbstractBattle) -> dict:
+    def _format_result(self, battle: AbstractBattle, replay_url: str | None = None) -> dict:
         if battle.won:
             winner = "bot"
         elif battle.lost:
@@ -245,7 +279,7 @@ class BotChallenger:
         return {
             "winner"     : winner,
             "turns"      : getattr(battle, "turn", 0),
-            "replay_url" : None,   # would need /savereplay in Showdown
+            "replay_url" : replay_url,
             "format"     : self.fmt,
             "bot_name"   : self.username,
             "opponent"   : _get_opponent_name(battle),

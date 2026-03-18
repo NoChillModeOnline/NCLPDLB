@@ -43,7 +43,7 @@ jobs:
           - format: gen9vgc2026regf
             team_format: gen9vgc2026regf
             timesteps: 50000
-          - format: gen9randombattledoubles
+          - format: gen9randomdoublesbattle
             team_format: ""
             timesteps: 50000
           - format: gen9ubers
@@ -109,6 +109,16 @@ jobs:
           cd /tmp/showdown
           echo "--- Installing Showdown dependencies ---"
           npm install
+          echo "--- Patching Showdown config (disable OTS for VGC formats) ---"
+          cat > /tmp/showdown/config/config.js << 'EOF'
+'use strict';
+exports.customFormats = {
+  'gen9vgc2026regi':    { openTeamSheets: false },
+  'gen9vgc2026regf':    { openTeamSheets: false },
+  'gen9vgc2026regibo3': { openTeamSheets: false },
+  'gen9vgc2026regfbo3': { openTeamSheets: false },
+};
+EOF
           echo "--- Starting Showdown server ---"
           node pokemon-showdown start --no-security --max-old-space-size=3000 > /tmp/showdown.log 2>&1 &
           SHOWDOWN_PID=$!

@@ -68,9 +68,6 @@ class BattleSimService:
                 type_summary="N/A", p1_score=0, p2_score=0,
             )
 
-        p1_analysis = self.analytics.analyze_pokemon_list(r1.pokemon)
-        p2_analysis = self.analytics.analyze_pokemon_list(r2.pokemon)
-
         # Find which of p1's pokemon threaten p2's team
         p1_threats = self._find_threats(r1.pokemon, r2.pokemon)
         p2_threats = self._find_threats(r2.pokemon, r1.pokemon)

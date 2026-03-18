@@ -56,6 +56,9 @@ class Settings(BaseSettings):
     # ML policy models directory
     ml_policy_dir: str = "data/ml/policy"
 
+    # Master learning spreadsheet (separate from the league sheet; stores replay URLs)
+    ml_learning_spreadsheet_id: str = ""
+
     # Smogon / VGC
     smogon_strategy_url: str = "https://www.smogon.com/dex"
     vgc_format: str = "reg-h"

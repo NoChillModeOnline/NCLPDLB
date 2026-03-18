@@ -58,7 +58,7 @@ class AdminCog(commands.Cog, name="Admin"):
         new_pokemon: str,
     ) -> None:
         await interaction.response.defer()
-        result = await self.draft_service.override_pick(
+        await self.draft_service.override_pick(
             guild_id=str(interaction.guild_id),
             player_id=str(user.id),
             old_pokemon=old_pokemon,

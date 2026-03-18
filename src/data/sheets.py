@@ -542,3 +542,83 @@ class SheetsClient:
 
 # Global singleton
 sheets = SheetsClient()
+
+
+# ── Master learning spreadsheet ────────────────────────────────────────────────
+
+REPLAY_HEADERS = ["Timestamp", "Format", "Battle ID", "Bot", "Opponent", "Winner", "Turns", "Replay URL"]
+
+
+class LearningSheets:
+    """
+    Writes ML/training data to a separate master learning spreadsheet.
+
+    Set ML_LEARNING_SPREADSHEET_ID in .env (or leave blank to disable).
+    The spreadsheet is created fresh with headers on first use.
+    """
+
+    _instance: "LearningSheets | None" = None
+    _client: gspread.Client | None = None
+    _spreadsheet: gspread.Spreadsheet | None = None
+
+    def __new__(cls) -> "LearningSheets":
+        if cls._instance is None:
+            cls._instance = super().__new__(cls)
+        return cls._instance
+
+    @property
+    def enabled(self) -> bool:
+        return bool(settings.ml_learning_spreadsheet_id)
+
+    def _connect(self) -> None:
+        creds_path = settings.google_sheets_credentials_file
+        if not creds_path.exists():
+            raise FileNotFoundError(f"Google credentials not found: {creds_path}")
+        creds = Credentials.from_service_account_file(str(creds_path), scopes=SCOPES)
+        self._client = gspread.authorize(creds)
+        self._spreadsheet = self._client.open_by_key(settings.ml_learning_spreadsheet_id)
+        log.info(f"Connected to learning spreadsheet: '{self._spreadsheet.title}'")
+
+    @property
+    def spreadsheet(self) -> gspread.Spreadsheet:
+        if self._spreadsheet is None:
+            self._connect()
+        return self._spreadsheet
+
+    def _get_replays_sheet(self) -> gspread.Worksheet:
+        try:
+            return self.spreadsheet.worksheet("Replays")
+        except gspread.WorksheetNotFound:
+            ws = self.spreadsheet.add_worksheet(title="Replays", rows=10000, cols=len(REPLAY_HEADERS))
+            ws.append_row(REPLAY_HEADERS, value_input_option="USER_ENTERED")
+            log.info("Created 'Replays' sheet with headers in learning spreadsheet")
+            return ws
+
+    def save_replay_url(self, data: dict) -> None:
+        """
+        Append a battle replay URL row to the master learning spreadsheet.
+
+        Expected keys: format, battle_id, bot, opponent, winner, turns, replay_url
+        """
+        if not self.enabled:
+            log.debug("Learning spreadsheet not configured — skipping replay URL save")
+            return
+        try:
+            ws = self._get_replays_sheet()
+            ws.append_row([
+                UTC_NOW(),
+                data.get("format", ""),
+                data.get("battle_id", ""),
+                data.get("bot", ""),
+                data.get("opponent", ""),
+                data.get("winner", ""),
+                data.get("turns", ""),
+                data.get("replay_url", ""),
+            ], value_input_option="USER_ENTERED")
+            log.info(f"Saved replay URL to learning spreadsheet: {data.get('replay_url', '')}")
+        except Exception as exc:
+            log.warning(f"Failed to save replay URL to learning spreadsheet: {exc}")
+
+
+# Global singleton
+learning_sheets = LearningSheets()

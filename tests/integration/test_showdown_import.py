@@ -225,32 +225,38 @@ async def test_replay_parse_duplicate_pokemon():
 @pytest.mark.asyncio
 async def test_export_round_trip():
     """Test import → export round-trip preserves core team data."""
+    from src.data.models import Pokemon, PokemonStats, TeamRoster
     svc = TeamService()
+
+    def make_mon(name: str) -> Pokemon:
+        return Pokemon(
+            national_dex=1,
+            name=name.title(),
+            types=["normal"],
+            base_stats=PokemonStats(hp=80, atk=80, def_=80, spa=80, spd=80, spe=80),
+            generation=8,
+        )
 
     with patch("src.services.team_service.pokemon_db") as db, \
          patch("src.services.team_service.sheets"):
-        # Mock database
-        def find_mock(name):
-            mon = MagicMock()
-            mon.name = name.title()
-            mon.types = ["normal"]
-            mon.tier = "OU"
-            return mon
-        db.find = find_mock
+        db.find = lambda name: make_mon(name)
 
         # Import team
         import_result = await svc.import_showdown("g1", "p1", SAMPLE_TEAM)
         assert import_result.success
 
-        # Export team
+        # Build a TeamRoster from the imported pokemon (export_showdown expects TeamRoster)
+        roster = TeamRoster(player_id="p1", guild_id="g1", pokemon=import_result.pokemon)
+
+        # Export team — returns a plain str
         with patch.object(svc, "get_team", new_callable=AsyncMock) as mock_get:
-            mock_get.return_value = import_result.pokemon
+            mock_get.return_value = roster
             export_result = await svc.export_showdown("g1", "p1")
 
-        assert export_result.success
-        assert "Garchomp" in export_result.showdown_text
-        assert "Corviknight" in export_result.showdown_text
-        assert "Toxapex" in export_result.showdown_text
+        assert isinstance(export_result, str)
+        assert "Garchomp" in export_result
+        assert "Corviknight" in export_result
+        assert "Toxapex" in export_result
 
 
 @pytest.mark.asyncio
