@@ -4,12 +4,14 @@ Admin Cog — Commissioner and admin override commands.
 import asyncio
 import logging
 import sys
+from collections import deque
 from pathlib import Path
 
 import discord
 from discord import app_commands
 from discord.ext import commands
 
+from src.ml.showdown_modes import MODE_LOCALHOST
 from src.services.draft_service import DraftService
 
 log = logging.getLogger(__name__)
@@ -208,7 +210,7 @@ class AdminCog(commands.Cog, name="Admin"):
             return
 
         results_dir = Path("src/ml/models/results")
-        if not force and any(results_dir.glob(f"{format}_*.zip")):
+        if not force and _model_exists(results_dir, format):
             await interaction.followup.send(
                 f"Model for `{format}` already exists. Use `force: True` to retrain.",
                 ephemeral=True,
@@ -269,7 +271,7 @@ class AdminCog(commands.Cog, name="Admin"):
         results_dir = Path("src/ml/models/results")
         already_done = sum(
             1 for fmt in TRAINING_MAP
-            if skip_existing and any(results_dir.glob(f"{fmt}_*.zip"))
+            if skip_existing and _model_exists(results_dir, fmt)
         )
         to_train = total - already_done
 
@@ -338,13 +340,34 @@ class ConfirmResetView(discord.ui.View):
         self.stop()
 
 
+# ── Shared helpers ────────────────────────────────────────────────────────────
+
+def _model_exists(results_dir: Path, fmt: str) -> bool:
+    """Check if a trained model exists for a format (checks per-format subdir and flat root)."""
+    return (
+        any((results_dir / fmt).glob(f"{fmt}_*.zip"))
+        or any(results_dir.glob(f"{fmt}_*.zip"))
+    )
+
+
+async def _try_edit(msg: discord.Message | None, embed: discord.Embed) -> None:
+    """Edit a Discord message's embed, silently ignoring errors."""
+    if msg:
+        try:
+            await msg.edit(embed=embed)
+        except Exception:
+            pass
+
+
+# ── Background training tasks ─────────────────────────────────────────────────
+
 async def _run_training(
     interaction: discord.Interaction,
     fmt: str,
     timesteps: int,
     force: bool,
-    channel_msg=None,
-    server: str = "localhost",
+    channel_msg: discord.Message | None = None,
+    server: str = MODE_LOCALHOST,
 ) -> None:
     """
     Background task: train a single format with preflight, progress bar, and auto-fix.
@@ -358,7 +381,7 @@ async def _run_training(
     """
     from src.ml.training_doctor import (
         apply_all_fixes, diagnose_output,
-        make_progress_bar, parse_timestep_progress, preflight_check,
+        parse_timestep_progress, preflight_check,
     )
 
     project_root = Path(__file__).parents[3]
@@ -382,17 +405,13 @@ async def _run_training(
 
     if blocking:
         block_lines = "\n".join(f"• {e['description']}" for e in blocking)
-        if channel_msg:
-            try:
-                blocked_embed = discord.Embed(
-                    title=f"❌ Training Blocked — `{fmt}`",
-                    description=block_lines,
-                    color=discord.Color.red(),
-                )
-                blocked_embed.set_footer(text="Start the local Showdown server to begin training")
-                await channel_msg.edit(embed=blocked_embed)
-            except Exception:
-                pass
+        blocked_embed = discord.Embed(
+            title=f"❌ Training Blocked — `{fmt}`",
+            description=block_lines,
+            color=discord.Color.red(),
+        )
+        blocked_embed.set_footer(text="Fix the blocking issue(s) above, then retry.")
+        await _try_edit(channel_msg, blocked_embed)
         try:
             await interaction.user.send(
                 f"❌ **Training `{fmt}` cannot start — blocking issue(s):**\n{block_lines}"
@@ -408,7 +427,7 @@ async def _run_training(
     while attempt < max_attempts:
         attempt += 1
         label = f"`{fmt}`" + (f" (retry {attempt - 1})" if attempt > 1 else "")
-        collected: list[str] = []
+        collected: deque[str] = deque(maxlen=500)
         latest_steps = 0
 
         # Send initial progress DM
@@ -425,7 +444,7 @@ async def _run_training(
         ]
         if force:
             cmd.append("--force")
-        if server != "localhost":
+        if server != MODE_LOCALHOST:
             cmd += ["--server", server]
 
         try:
@@ -444,7 +463,6 @@ async def _run_training(
                 line = raw_line.decode(errors="replace").rstrip()
                 collected.append(line)
 
-                # Parse progress
                 steps = parse_timestep_progress(line)
                 if steps is not None:
                     latest_steps = steps
@@ -453,16 +471,8 @@ async def _run_training(
                 now = asyncio.get_event_loop().time()
                 if now - last_edit_time >= 60:
                     prog_embed = _build_progress_embed(fmt, latest_steps, timesteps, attempt)
-                    if dm_msg:
-                        try:
-                            await dm_msg.edit(embed=prog_embed)
-                        except Exception:
-                            pass
-                    if channel_msg:
-                        try:
-                            await channel_msg.edit(embed=prog_embed)
-                        except Exception:
-                            pass
+                    await _try_edit(dm_msg, prog_embed)
+                    await _try_edit(channel_msg, prog_embed)
                     last_edit_time = now
 
             await proc.wait()
@@ -478,16 +488,8 @@ async def _run_training(
         # ── 3. Success ──────────────────────────────────────────────
         if ok:
             done_embed = _build_progress_embed(fmt, timesteps, timesteps, attempt, done=True)
-            if dm_msg:
-                try:
-                    await dm_msg.edit(embed=done_embed)
-                except Exception:
-                    pass
-            if channel_msg:
-                try:
-                    await channel_msg.edit(embed=done_embed)
-                except Exception:
-                    pass
+            await _try_edit(dm_msg, done_embed)
+            await _try_edit(channel_msg, done_embed)
             result_embed = discord.Embed(
                 title="✅ Training Complete",
                 description=f"Format: {label}\n```\n{output[-1200:]}\n```",
@@ -524,13 +526,7 @@ async def _run_training(
             continue  # retry
 
         # No fix possible — final failure
-        if channel_msg:
-            try:
-                await channel_msg.edit(
-                    embed=_build_progress_embed(fmt, latest_steps, timesteps, attempt, failed=True)
-                )
-            except Exception:
-                pass
+        await _try_edit(channel_msg, _build_progress_embed(fmt, latest_steps, timesteps, attempt, failed=True))
         snippet = output[-1200:]
         fail_embed = discord.Embed(
             title="❌ Training Failed",
@@ -552,14 +548,13 @@ async def _run_training_all(
     interaction: discord.Interaction,
     timesteps: int,
     force: bool,
-    channel_msg=None,
-    server: str = "localhost",
+    channel_msg: discord.Message | None = None,
+    server: str = MODE_LOCALHOST,
 ) -> None:
     """
     Background task: train all formats sequentially.
 
     Sends a per-format progress DM, then a final summary.
-    Each format gets the same auto-fix + retry logic via _run_training.
     """
     from src.ml.train_all import TRAINING_MAP
     from src.ml.training_doctor import preflight_check
@@ -571,11 +566,11 @@ async def _run_training_all(
     formats_to_run = [
         fmt for fmt, entry in TRAINING_MAP.items()
         if entry[0] is not None
-        and (force or not any(results_dir.glob(f"{fmt}_*.zip")))
+        and (force or not _model_exists(results_dir, fmt))
     ]
     skipped_count = len(TRAINING_MAP) - len(formats_to_run)
 
-    # Check Showdown server once before starting
+    # Check server once before starting
     issues = preflight_check(
         formats_to_run[0] if formats_to_run else "gen9randombattle",
         save_dir, sys.executable, server_mode=server,
@@ -583,17 +578,13 @@ async def _run_training_all(
     blocking = [i for i in issues if not i["fixable"]]
     if blocking:
         block_lines = "\n".join(f"• {e['description']}" for e in blocking)
-        if channel_msg:
-            try:
-                blocked_embed = discord.Embed(
-                    title="❌ Train-All Blocked",
-                    description=block_lines,
-                    color=discord.Color.red(),
-                )
-                blocked_embed.set_footer(text="Start the local Showdown server to begin training")
-                await channel_msg.edit(embed=blocked_embed)
-            except Exception:
-                pass
+        blocked_embed = discord.Embed(
+            title="❌ Train-All Blocked",
+            description=block_lines,
+            color=discord.Color.red(),
+        )
+        blocked_embed.set_footer(text="Fix the blocking issue(s) above, then retry.")
+        await _try_edit(channel_msg, blocked_embed)
         try:
             await interaction.user.send(
                 f"❌ **Train-All cannot start — blocking issue(s):**\n{block_lines}"
@@ -624,21 +615,17 @@ async def _run_training_all(
         ]
         if force:
             cmd.append("--force")
-        if server != "localhost":
+        if server != MODE_LOCALHOST:
             cmd += ["--server", server]
 
-        collected: list[str] = []
+        collected: deque[str] = deque(maxlen=500)
         latest_steps = 0
 
         # Update channel bar to show current format starting
-        if channel_msg:
-            try:
-                await channel_msg.edit(embed=_build_queue_embed(
-                    len(formats_to_run), skipped_count, timesteps,
-                    current_fmt=fmt, current_steps=0, n_done=n_done, n_failed=n_failed,
-                ))
-            except Exception:
-                pass
+        await _try_edit(channel_msg, _build_queue_embed(
+            len(formats_to_run), skipped_count, timesteps,
+            current_fmt=fmt, current_steps=0, n_done=n_done, n_failed=n_failed,
+        ))
 
         progress_embed = _build_progress_embed(fmt, 0, timesteps, attempt=1)
         try:
@@ -665,21 +652,12 @@ async def _run_training_all(
                     latest_steps = steps
                 now = asyncio.get_event_loop().time()
                 if now - last_edit_time >= 60:
-                    prog_embed = _build_progress_embed(fmt, latest_steps, timesteps, attempt=1)
-                    if dm_msg:
-                        try:
-                            await dm_msg.edit(embed=prog_embed)
-                        except Exception:
-                            pass
-                    if channel_msg:
-                        try:
-                            await channel_msg.edit(embed=_build_queue_embed(
-                                len(formats_to_run), skipped_count, timesteps,
-                                current_fmt=fmt, current_steps=latest_steps,
-                                n_done=n_done, n_failed=n_failed,
-                            ))
-                        except Exception:
-                            pass
+                    await _try_edit(dm_msg, _build_progress_embed(fmt, latest_steps, timesteps, attempt=1))
+                    await _try_edit(channel_msg, _build_queue_embed(
+                        len(formats_to_run), skipped_count, timesteps,
+                        current_fmt=fmt, current_steps=latest_steps,
+                        n_done=n_done, n_failed=n_failed,
+                    ))
                     last_edit_time = now
 
             await proc.wait()
@@ -691,14 +669,9 @@ async def _run_training_all(
             collected.append(f"Exception: {exc}")
 
         # Update DM progress bar to final state
-        if dm_msg:
-            try:
-                await dm_msg.edit(
-                    embed=_build_progress_embed(fmt, timesteps if ok else latest_steps,
-                                                timesteps, attempt=1, done=ok, failed=not ok)
-                )
-            except Exception:
-                pass
+        await _try_edit(dm_msg, _build_progress_embed(
+            fmt, timesteps if ok else latest_steps, timesteps, attempt=1, done=ok, failed=not ok
+        ))
 
         results[fmt] = "done" if ok else "failed"
         if ok:
@@ -723,14 +696,10 @@ async def _run_training_all(
     n_fail = sum(1 for s in results.values() if "fail" in s)
 
     # Update channel status bar to final state
-    if channel_msg:
-        try:
-            await channel_msg.edit(embed=_build_queue_embed(
-                len(formats_to_run), skipped_count, timesteps,
-                n_done=n_ok, n_failed=n_fail, done=True,
-            ))
-        except Exception:
-            pass
+    await _try_edit(channel_msg, _build_queue_embed(
+        len(formats_to_run), skipped_count, timesteps,
+        n_done=n_ok, n_failed=n_fail, done=True,
+    ))
 
     summary_embed = discord.Embed(
         title="Train-All Complete" if n_fail == 0 else "Train-All Finished With Errors",
@@ -746,6 +715,8 @@ async def _run_training_all(
         log.error(f"[admin-train-all] could not DM summary: {exc}")
 
 
+# ── Embed builders ────────────────────────────────────────────────────────────
+
 def _build_queue_embed(
     total_to_train: int,
     already_skipped: int,
@@ -755,7 +726,6 @@ def _build_queue_embed(
     current_steps: int = 0,
     n_done: int = 0,
     n_failed: int = 0,
-    attempt: int = 1,
     done: bool = False,
 ) -> discord.Embed:
     """Build a Discord embed showing overall train-all queue progress."""
@@ -767,8 +737,7 @@ def _build_queue_embed(
         title = "✅ Train-All Complete" if n_failed == 0 else f"⚠️ Train-All Finished ({n_failed} failed)"
         color = discord.Color.green() if n_failed == 0 else discord.Color.orange()
     elif current_fmt:
-        retry_suffix = f" (retry {attempt - 1})" if attempt > 1 else ""
-        title = f"⚙️ Training {n_done + 1}/{total_to_train}{retry_suffix} — `{current_fmt}`"
+        title = f"⚙️ Training {n_done + 1}/{total_to_train} — `{current_fmt}`"
         color = discord.Color.blurple()
     else:
         title = f"🚀 Train-All — {total_to_train} format(s) queued"
@@ -793,9 +762,7 @@ def _build_queue_embed(
     if not done and current_fmt:
         lines.append("\n_Updates every 60 seconds._")
 
-    embed = discord.Embed(title=title, description="\n".join(lines), color=color)
-    embed.set_footer(text="Requires local Showdown server on ws://localhost:8000")
-    return embed
+    return discord.Embed(title=title, description="\n".join(lines), color=color)
 
 
 def _build_progress_embed(
@@ -833,9 +800,7 @@ def _build_progress_embed(
     if not done and not failed:
         desc += "\n_Updates every 60 seconds. You'll get a DM when done._"
 
-    embed = discord.Embed(title=title, description=desc, color=color)
-    embed.set_footer(text="Requires local Showdown server on ws://localhost:8000")
-    return embed
+    return discord.Embed(title=title, description=desc, color=color)
 
 
 async def setup(bot: commands.Bot) -> None:

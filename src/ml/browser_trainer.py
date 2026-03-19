@@ -96,14 +96,15 @@ def build_observation_from_dom(page: Any) -> np.ndarray:
     try:
         # ── Active Pokémon HP (player side, slot 0) ──────────────────
         hp_els = page.locator(".hpbar .hptext")
-        if hp_els.count():
+        hp_count = hp_els.count()
+        if hp_count:
             hp_text = hp_els.nth(0).inner_text()  # e.g. "72/100"
             parts = hp_text.replace("%", "").split("/")
             if len(parts) == 2:
                 obs[0] = float(parts[0]) / max(float(parts[1]), 1)  # fraction
 
         # ── Active Pokémon HP (opponent side, slot 1) ─────────────────
-        if hp_els.count() >= 2:
+        if hp_count >= 2:
             hp_text = hp_els.nth(1).inner_text()
             parts = hp_text.replace("%", "").split("/")
             if len(parts) == 2:
