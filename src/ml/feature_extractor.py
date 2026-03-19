@@ -55,7 +55,7 @@ TEAM_FEATURE_DIM = TEAM_SIZE * 2   # minimum — extended below when data is ava
 #   p1_fainted_count, p2_fainted_count,
 #   turn_number_normalized,
 #   last_move_p1_id, last_move_p2_id
-STATE_FEATURE_DIM = 2 + 12 + 2 + 1 + 2   # = 19
+STATE_FEATURE_DIM = 2 + 12 + 2 + 1 + 2   # = 2 active IDs + 12 HP slots + 2 faint counts + 1 turn norm + 2 last moves = 19
 
 
 # ── Vocabulary ────────────────────────────────────────────────────────────────
