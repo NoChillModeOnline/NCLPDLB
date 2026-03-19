@@ -20,17 +20,14 @@ log = logging.getLogger(__name__)
 
 # ── Supported spar formats (must have a trained model) ────────────────────────
 SPAR_FORMATS = [
+    # Random Battle
     "gen9randombattle",
-    "gen9ou",
-    "gen9doublesou",
-    "gen9nationaldex",
-    "gen9monotype",
-    "gen9anythinggoes",
-    "gen9vgc2026regi",
-    "gen9vgc2026regf",
+    "gen9monorandom",
+    "gen9randomdoublesbattle",
     "gen7randombattle",
     "gen6randombattle",
-    "gen9randomdoublesbattle",
+    # Smogon Singles
+    "gen9ou",
     "gen9ubers",
     "gen9uu",
     "gen9ru",
@@ -38,24 +35,37 @@ SPAR_FORMATS = [
     "gen9pu",
     "gen9zu",
     "gen9lc",
+    "gen9monotype",
+    "gen9nationaldex",
+    "gen9anythinggoes",
+    # Smogon Doubles
+    "gen9doublesou",
     "gen9doublesubers",
     "gen9doublesuu",
+    "gen9doublesnu",
+    # VGC 2025
+    "gen9vgc2025regg",
+    "gen9vgc2025regh",
+    "gen9vgc2025regi",
+    "gen9vgc2025reggbo3",
+    "gen9vgc2025reghbo3",
+    "gen9vgc2025regibo3",
+    # VGC 2026
+    "gen9vgc2026regf",
+    "gen9vgc2026regi",
     "gen9vgc2026regfbo3",
     "gen9vgc2026regibo3",
 ]
 
 _FORMAT_DISPLAY = {
+    # Random Battle
     "gen9randombattle"       : "Gen 9 Random Battle",
-    "gen9ou"                 : "Gen 9 OU",
-    "gen9doublesou"          : "Gen 9 Doubles OU",
-    "gen9nationaldex"        : "Gen 9 National Dex",
-    "gen9monotype"           : "Gen 9 Monotype",
-    "gen9anythinggoes"       : "Gen 9 Anything Goes",
-    "gen9vgc2026regi"        : "VGC 2026 Reg I",
-    "gen9vgc2026regf"        : "VGC 2026 Reg F",
+    "gen9monorandom"         : "Gen 9 Monotype Random",
+    "gen9randomdoublesbattle": "Gen 9 Random Doubles",
     "gen7randombattle"       : "Gen 7 Random Battle",
     "gen6randombattle"       : "Gen 6 Random Battle",
-    "gen9randomdoublesbattle": "Gen 9 Random Doubles Battle",
+    # Smogon Singles
+    "gen9ou"                 : "Gen 9 OU",
     "gen9ubers"              : "Gen 9 Ubers",
     "gen9uu"                 : "Gen 9 UU",
     "gen9ru"                 : "Gen 9 RU",
@@ -63,16 +73,41 @@ _FORMAT_DISPLAY = {
     "gen9pu"                 : "Gen 9 PU",
     "gen9zu"                 : "Gen 9 ZU",
     "gen9lc"                 : "Gen 9 LC",
+    "gen9monotype"           : "Gen 9 Monotype",
+    "gen9nationaldex"        : "Gen 9 National Dex",
+    "gen9anythinggoes"       : "Gen 9 Anything Goes",
+    # Smogon Doubles
+    "gen9doublesou"          : "Gen 9 Doubles OU",
     "gen9doublesubers"       : "Gen 9 Doubles Ubers",
     "gen9doublesuu"          : "Gen 9 Doubles UU",
+    "gen9doublesnu"          : "Gen 9 Doubles NU",
+    # VGC 2025
+    "gen9vgc2025regg"        : "VGC 2025 Reg G",
+    "gen9vgc2025regh"        : "VGC 2025 Reg H",
+    "gen9vgc2025regi"        : "VGC 2025 Reg I",
+    "gen9vgc2025reggbo3"     : "VGC 2025 Reg G (Bo3)",
+    "gen9vgc2025reghbo3"     : "VGC 2025 Reg H (Bo3)",
+    "gen9vgc2025regibo3"     : "VGC 2025 Reg I (Bo3)",
+    # VGC 2026
+    "gen9vgc2026regf"        : "VGC 2026 Reg F",
+    "gen9vgc2026regi"        : "VGC 2026 Reg I",
     "gen9vgc2026regfbo3"     : "VGC 2026 Reg F (Bo3)",
     "gen9vgc2026regibo3"     : "VGC 2026 Reg I (Bo3)",
 }
 
-SPAR_FORMAT_CHOICES = [
-    app_commands.Choice(name=_FORMAT_DISPLAY.get(fmt, fmt), value=fmt)
-    for fmt in SPAR_FORMATS
-]
+
+async def spar_format_autocomplete(
+    interaction: discord.Interaction,
+    current: str,
+) -> list[app_commands.Choice[str]]:
+    """Dynamic autocomplete for /spar format — no 25-choice limit."""
+    needle = current.lower()
+    matches = [
+        app_commands.Choice(name=_FORMAT_DISPLAY.get(fmt, fmt), value=fmt)
+        for fmt in SPAR_FORMATS
+        if needle in fmt.lower() or needle in _FORMAT_DISPLAY.get(fmt, "").lower()
+    ]
+    return matches[:25]
 
 
 class StatsCog(commands.Cog, name="Stats"):
@@ -289,16 +324,16 @@ class StatsCog(commands.Cog, name="Stats"):
         showdown_name="Your Pokemon Showdown username",
         format="Battle format (default: gen9randombattle)",
     )
-    @app_commands.choices(format=SPAR_FORMAT_CHOICES)
+    @app_commands.autocomplete(format=spar_format_autocomplete)
     async def spar(
         self,
         interaction: discord.Interaction,
         showdown_name: str,
-        format: app_commands.Choice[str] | None = None,
+        format: str | None = None,
     ) -> None:
         await interaction.response.defer(thinking=True)
 
-        fmt = format.value if format else "gen9randombattle"
+        fmt = format if format else "gen9randombattle"
 
         # Check if a trained model is available for this format
         model_path = best_model_for_format(fmt)

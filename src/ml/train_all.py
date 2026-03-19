@@ -8,28 +8,36 @@ Doubles formats use BattleDoubleEnv automatically (detected in train_policy.py).
 
 Format → Training format mapping
 ──────────────────────────────────
-  gen9randombattle       → gen9randombattle       (direct, no teams)
-  gen9ou                 → gen9ou                 (direct, RotatingTeambuilder)
-  gen9doublesou          → gen9doublesou          (direct, RotatingTeambuilder, doubles)
-  gen9nationaldex        → gen9nationaldex        (direct, RotatingTeambuilder)
-  gen9monotype           → gen9monotype           (direct, RotatingTeambuilder)
-  gen9anythinggoes       → gen9anythinggoes       (direct, RotatingTeambuilder)
-  gen7randombattle       → gen7randombattle       (direct, no teams)
-  gen6randombattle       → gen6randombattle       (direct, no teams)
-  gen9vgc2026regi        → gen9vgc2026regi        (direct, RotatingTeambuilder, doubles)
-  gen9vgc2026regf        → gen9vgc2026regf        (direct, RotatingTeambuilder, doubles)
+  gen9randombattle        → gen9randombattle        (direct, no teams)
+  gen9monorandom          → gen9monorandom          (direct, no teams)
   gen9randomdoublesbattle → gen9randomdoublesbattle (direct, no teams, doubles)
-  gen9ubers              → gen9ubers              (direct, RotatingTeambuilder)
-  gen9uu                 → gen9uu                 (direct, RotatingTeambuilder)
-  gen9ru                 → gen9ru                 (direct, RotatingTeambuilder)
-  gen9nu                 → gen9nu                 (direct, RotatingTeambuilder)
-  gen9pu                 → gen9pu                 (direct, RotatingTeambuilder)
-  gen9zu                 → gen9zu                 (direct, RotatingTeambuilder)
-  gen9lc                 → gen9lc                 (direct, RotatingTeambuilder)
-  gen9doublesubers       → gen9doublesubers       (direct, RotatingTeambuilder, doubles)
-  gen9doublesuu          → gen9doublesuu          (direct, RotatingTeambuilder, doubles)
-  gen9vgc2026regfbo3     → gen9vgc2026regfbo3     (direct, RotatingTeambuilder, doubles)
-  gen9vgc2026regibo3     → gen9vgc2026regibo3     (direct, RotatingTeambuilder, doubles)
+  gen7randombattle        → gen7randombattle        (direct, no teams)
+  gen6randombattle        → gen6randombattle        (direct, no teams)
+  gen9ou                  → gen9ou                  (direct, RotatingTeambuilder)
+  gen9ubers               → gen9ubers               (direct, RotatingTeambuilder)
+  gen9uu                  → gen9uu                  (direct, RotatingTeambuilder)
+  gen9ru                  → gen9ru                  (direct, RotatingTeambuilder)
+  gen9nu                  → gen9nu                  (direct, RotatingTeambuilder)
+  gen9pu                  → gen9pu                  (direct, RotatingTeambuilder)
+  gen9zu                  → gen9zu                  (direct, RotatingTeambuilder)
+  gen9lc                  → gen9lc                  (direct, RotatingTeambuilder)
+  gen9monotype            → gen9monotype            (direct, RotatingTeambuilder)
+  gen9nationaldex         → gen9nationaldex         (direct, RotatingTeambuilder)
+  gen9anythinggoes        → gen9anythinggoes        (direct, RotatingTeambuilder)
+  gen9doublesou           → gen9doublesou           (direct, RotatingTeambuilder, doubles)
+  gen9doublesubers        → gen9doublesubers        (direct, RotatingTeambuilder, doubles)
+  gen9doublesuu           → gen9doublesuu           (direct, RotatingTeambuilder, doubles)
+  gen9doublesnu           → gen9doublesnu           (direct, RotatingTeambuilder, doubles)
+  gen9vgc2025regg         → gen9vgc2025regg         (direct, RotatingTeambuilder, doubles)
+  gen9vgc2025regh         → gen9vgc2025regh         (direct, RotatingTeambuilder, doubles)
+  gen9vgc2025regi         → gen9vgc2025regi         (direct, RotatingTeambuilder, doubles)
+  gen9vgc2025reggbo3      → gen9vgc2025reggbo3      (direct, RotatingTeambuilder, doubles)
+  gen9vgc2025reghbo3      → gen9vgc2025reghbo3      (direct, RotatingTeambuilder, doubles)
+  gen9vgc2025regibo3      → gen9vgc2025regibo3      (direct, RotatingTeambuilder, doubles)
+  gen9vgc2026regf         → gen9vgc2026regf         (direct, RotatingTeambuilder, doubles)
+  gen9vgc2026regi         → gen9vgc2026regi         (direct, RotatingTeambuilder, doubles)
+  gen9vgc2026regfbo3      → gen9vgc2026regfbo3      (direct, RotatingTeambuilder, doubles)
+  gen9vgc2026regibo3      → gen9vgc2026regibo3      (direct, RotatingTeambuilder, doubles)
 
 Usage
 ─────
@@ -54,28 +62,41 @@ log = logging.getLogger(__name__)
 #
 # None for train_fmt means SKIP entirely.
 TRAINING_MAP: dict[str, tuple[str | None, str | None]] = {
-    "gen9randombattle"      : ("gen9randombattle",      None),
-    "gen9ou"                : ("gen9ou",                "gen9ou"),
-    "gen9doublesou"         : ("gen9doublesou",         "gen9doublesou"),
-    "gen9nationaldex"       : ("gen9nationaldex",       "gen9nationaldex"),
-    "gen9monotype"          : ("gen9monotype",          "gen9monotype"),
-    "gen9anythinggoes"      : ("gen9anythinggoes",      "gen9anythinggoes"),
-    "gen7randombattle"      : ("gen7randombattle",      None),
-    "gen6randombattle"      : ("gen6randombattle",      None),
-    "gen9vgc2026regi"       : ("gen9vgc2026regi",       "gen9vgc2026regi"),
-    "gen9vgc2026regf"       : ("gen9vgc2026regf",       "gen9vgc2026regf"),
+    # Random Battle (no teams needed)
+    "gen9randombattle"       : ("gen9randombattle",       None),
+    "gen9monorandom"         : ("gen9monorandom",         None),
     "gen9randomdoublesbattle": ("gen9randomdoublesbattle", None),
-    "gen9ubers"             : ("gen9ubers",             "gen9ubers"),
-    "gen9uu"                : ("gen9uu",                "gen9uu"),
-    "gen9ru"                : ("gen9ru",                "gen9ru"),
-    "gen9nu"                : ("gen9nu",                "gen9nu"),
-    "gen9pu"                : ("gen9pu",                "gen9pu"),
-    "gen9zu"                : ("gen9zu",                "gen9zu"),
-    "gen9lc"                : ("gen9lc",                "gen9lc"),
-    "gen9doublesubers"      : ("gen9doublesubers",      "gen9doublesubers"),
-    "gen9doublesuu"         : ("gen9doublesuu",         "gen9doublesuu"),
-    "gen9vgc2026regfbo3"    : ("gen9vgc2026regfbo3",    "gen9vgc2026regfbo3"),
-    "gen9vgc2026regibo3"    : ("gen9vgc2026regibo3",    "gen9vgc2026regibo3"),
+    "gen7randombattle"       : ("gen7randombattle",       None),
+    "gen6randombattle"       : ("gen6randombattle",       None),
+    # Smogon Singles
+    "gen9ou"                 : ("gen9ou",                 "gen9ou"),
+    "gen9ubers"              : ("gen9ubers",              "gen9ubers"),
+    "gen9uu"                 : ("gen9uu",                 "gen9uu"),
+    "gen9ru"                 : ("gen9ru",                 "gen9ru"),
+    "gen9nu"                 : ("gen9nu",                 "gen9nu"),
+    "gen9pu"                 : ("gen9pu",                 "gen9pu"),
+    "gen9zu"                 : ("gen9zu",                 "gen9zu"),
+    "gen9lc"                 : ("gen9lc",                 "gen9lc"),
+    "gen9monotype"           : ("gen9monotype",           "gen9monotype"),
+    "gen9nationaldex"        : ("gen9nationaldex",        "gen9nationaldex"),
+    "gen9anythinggoes"       : ("gen9anythinggoes",       "gen9anythinggoes"),
+    # Smogon Doubles
+    "gen9doublesou"          : ("gen9doublesou",          "gen9doublesou"),
+    "gen9doublesubers"       : ("gen9doublesubers",       "gen9doublesubers"),
+    "gen9doublesuu"          : ("gen9doublesuu",          "gen9doublesuu"),
+    "gen9doublesnu"          : ("gen9doublesnu",          "gen9doublesnu"),
+    # VGC 2025
+    "gen9vgc2025regg"        : ("gen9vgc2025regg",        "gen9vgc2025regg"),
+    "gen9vgc2025regh"        : ("gen9vgc2025regh",        "gen9vgc2025regh"),
+    "gen9vgc2025regi"        : ("gen9vgc2025regi",        "gen9vgc2025regi"),
+    "gen9vgc2025reggbo3"     : ("gen9vgc2025reggbo3",     "gen9vgc2025regg"),
+    "gen9vgc2025reghbo3"     : ("gen9vgc2025reghbo3",     "gen9vgc2025regh"),
+    "gen9vgc2025regibo3"     : ("gen9vgc2025regibo3",     "gen9vgc2025regi"),
+    # VGC 2026
+    "gen9vgc2026regf"        : ("gen9vgc2026regf",        "gen9vgc2026regf"),
+    "gen9vgc2026regi"        : ("gen9vgc2026regi",        "gen9vgc2026regi"),
+    "gen9vgc2026regfbo3"     : ("gen9vgc2026regfbo3",     "gen9vgc2026regf"),
+    "gen9vgc2026regibo3"     : ("gen9vgc2026regibo3",     "gen9vgc2026regi"),
 }
 
 DEFAULT_TIMESTEPS  = 500_000
