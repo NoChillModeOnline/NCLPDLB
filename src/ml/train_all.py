@@ -53,6 +53,8 @@ import sys
 import time
 from pathlib import Path
 
+from src.ml.showdown_modes import VALID_MODES, MODE_LOCALHOST
+
 log = logging.getLogger(__name__)
 
 # ── Format → (training format, team_format) mapping ──────────────────────────
@@ -124,6 +126,7 @@ def train_format(
     swap_every: int,
     save_dir: Path,
     results_dir: Path | None = None,
+    server: str = MODE_LOCALHOST,
 ) -> bool:
     """
     Train a policy for `spar_fmt` using `train_fmt` as the actual battle format.
@@ -160,6 +163,8 @@ def train_format(
         cmd += ["--team-format", team_fmt]
     if resume_path:
         cmd += ["--resume", str(resume_path)]
+    if server != MODE_LOCALHOST:
+        cmd += ["--server", server]
 
     log.info(f"[train_all] running: {' '.join(cmd)}")
     result = subprocess.run(
@@ -193,6 +198,7 @@ def run(
     save_dir: Path,
     results_dir: Path | None = None,
     force: bool = False,
+    server: str = MODE_LOCALHOST,
 ) -> None:
     _results_dir = results_dir if results_dir is not None else Path(DEFAULT_RESULTS_DIR)
     _results_dir.mkdir(parents=True, exist_ok=True)
@@ -235,6 +241,7 @@ def run(
             swap_every=swap_every,
             save_dir=save_dir,
             results_dir=_results_dir,
+            server=server,
         )
         elapsed = time.time() - t0
         results[spar_fmt] = "done" if ok else "failed"
@@ -287,6 +294,17 @@ def _parse_args() -> argparse.Namespace:
         action="store_true",
         help="Re-train even if a dated model already exists in results-dir",
     )
+    ap.add_argument(
+        "--server",
+        default=MODE_LOCALHOST,
+        choices=list(VALID_MODES),
+        help=(
+            "Showdown connection mode: "
+            "localhost (local Node.js server, default), "
+            "showdown (public sim3.psim.us — needs 2 accounts), "
+            "browser (Playwright automation — needs 2 accounts)"
+        ),
+    )
     return ap.parse_args()
 
 
@@ -305,4 +323,5 @@ if __name__ == "__main__":
         save_dir=Path(args.save_dir),
         results_dir=Path(args.results_dir),
         force=args.force,
+        server=args.server,
     )

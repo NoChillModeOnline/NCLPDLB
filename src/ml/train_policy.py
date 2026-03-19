@@ -62,6 +62,9 @@ try:
 except ImportError:
     POKE_ENV_OK = False
 
+from src.ml.showdown_modes import VALID_MODES, MODE_LOCALHOST, MODE_BROWSER
+from src.ml.showdown_modes import server_config_for_mode, account_configs_for_mode
+
 from src.ml.battle_env import (
     POKE_ENV_AVAILABLE,
     BattleDoubleEnv,
@@ -88,6 +91,12 @@ def _check_showdown_server() -> None:
             "  cd pokemon-showdown && node pokemon-showdown start --no-security\n"
             "See scripts/setup_showdown_server.md for full instructions."
         )
+
+
+def _check_showdown_server_if_local(server: str) -> None:
+    """Run server reachability check only for localhost mode."""
+    if server == MODE_LOCALHOST:
+        _check_showdown_server()
 
 
 DEFAULT_FORMAT      = "gen9randombattle"
@@ -238,6 +247,7 @@ def train(
     results_dir: Path | None = None,
     resume: str | None = None,
     team_format: str | None = None,
+    server: str = MODE_LOCALHOST,
 ) -> Path:
     """
     Run PPO self-play training for the given Showdown format.
@@ -252,11 +262,23 @@ def train(
         resume: Path to a saved checkpoint to resume training from.
         team_format: If set, load teams from FORMAT_TEAMS[team_format] and use
                      a RotatingTeambuilder (for formats that require custom teams).
+        server:      Connection mode — "localhost", "showdown", or "browser".
 
     Returns the path to the final saved model zip.
     """
     start_date = datetime.now().strftime("%Y-%m-%d")
-    _check_showdown_server()
+
+    # Delegate browser mode entirely to the Playwright trainer
+    if server == MODE_BROWSER:
+        from src.ml.browser_trainer import train_browser
+        return train_browser(
+            fmt=fmt,
+            total_timesteps=total_timesteps,
+            save_dir=save_dir,
+            results_dir=results_dir,
+        )
+
+    _check_showdown_server_if_local(server)
 
     if not POKE_ENV_AVAILABLE:
         raise RuntimeError(
@@ -291,12 +313,18 @@ def train(
     log_dir = fmt_save_dir / "tb_logs"
     log_dir.mkdir(exist_ok=True)
 
+    # ── Resolve server config and accounts ────────────────────────
+    srv_cfg = server_config_for_mode(server)
+    acc1, acc2 = account_configs_for_mode(server)
+
     # ── Opponent player (drives agent2 in SingleAgentWrapper) ──────
     opp_kwargs: dict[str, Any] = dict(
         battle_format=fmt,
-        server_configuration=LocalhostServerConfiguration,
+        server_configuration=srv_cfg,
         is_doubles=is_doubles,
     )
+    if acc2 is not None:
+        opp_kwargs["account_configuration"] = acc2
     if team_builder is not None:
         opp_kwargs["team"] = team_builder
 
@@ -308,9 +336,11 @@ def train(
     def make_env():
         env_kwargs: dict[str, Any] = dict(
             battle_format=fmt,
-            server_configuration=LocalhostServerConfiguration,
+            server_configuration=srv_cfg,
             strict=False,
         )
+        if acc1 is not None:
+            env_kwargs["account_configuration"] = acc1
         if team_builder is not None:
             env_kwargs["team"] = team_builder
         if is_doubles:
@@ -351,15 +381,21 @@ def train(
         verbose=1,
     )
 
+    _server_desc = {
+        "localhost": "ws://127.0.0.1:8000 (local Node.js server)",
+        "showdown":  "wss://sim3.psim.us (public Showdown)",
+    }.get(server, server)
     print(f"\n{'='*60}")
     print(f"  PPO Self-Play Training")
     print(f"  Format       : {fmt}")
+    print(f"  Server mode  : {server} — {_server_desc}")
     print(f"  Total steps  : {total_timesteps:,}")
     print(f"  Swap every   : {swap_every:,}")
     print(f"  Save dir     : {fmt_save_dir}")
     print(f"  TensorBoard  : tensorboard --logdir {log_dir}")
     print(f"{'='*60}\n")
-    print("Make sure Pokemon Showdown server is running on ws://localhost:8000")
+    if server == MODE_LOCALHOST:
+        print("Make sure Pokemon Showdown server is running on ws://localhost:8000")
     print("Press Ctrl+C to stop training early.\n")
 
     try:
@@ -505,6 +541,17 @@ def _parse_args() -> argparse.Namespace:
         help="Load teams from FORMAT_TEAMS[FORMAT] for custom-team formats "
              "(e.g. gen9ou, gen9doublesou, gen9vgc2026regi)",
     )
+    ap.add_argument(
+        "--server",
+        default=MODE_LOCALHOST,
+        choices=list(VALID_MODES),
+        help=(
+            "Showdown connection mode: "
+            "localhost (local Node.js server, default), "
+            "showdown (public sim3.psim.us — needs 2 accounts), "
+            "browser (Playwright automation — needs 2 accounts)"
+        ),
+    )
     return ap.parse_args()
 
 
@@ -532,4 +579,5 @@ if __name__ == "__main__":
             results_dir=Path(args.results_dir),
             resume=args.resume,
             team_format=args.team_format,
+            server=args.server,
         )

@@ -127,6 +127,7 @@ def preflight_check(
     fmt: str,
     save_dir: Path,
     python_exe: str | None = None,
+    server_mode: str = "localhost",
 ) -> list[dict]:
     """
     Run pre-training checks and return a list of issue dicts.
@@ -141,20 +142,21 @@ def preflight_check(
     issues: list[dict] = []
     exe = python_exe or sys.executable
 
-    # 1. Showdown server reachable?
-    try:
-        with socket.create_connection((SHOWDOWN_HOST, SHOWDOWN_PORT), timeout=3):
-            pass
-    except OSError:
-        issues.append({
-            "type":        "SHOWDOWN_OFFLINE",
-            "description": (
-                f"Local Showdown server not reachable at {SHOWDOWN_HOST}:{SHOWDOWN_PORT}.\n"
-                "Start it with:\n"
-                "  cd pokemon-showdown && node pokemon-showdown start --no-security"
-            ),
-            "fixable": False,
-        })
+    # 1. Showdown server reachable? (localhost mode only)
+    if server_mode == "localhost":
+        try:
+            with socket.create_connection((SHOWDOWN_HOST, SHOWDOWN_PORT), timeout=3):
+                pass
+        except OSError:
+            issues.append({
+                "type":        "SHOWDOWN_OFFLINE",
+                "description": (
+                    f"Local Showdown server not reachable at {SHOWDOWN_HOST}:{SHOWDOWN_PORT}.\n"
+                    "Start it with:\n"
+                    "  cd pokemon-showdown && node pokemon-showdown start --no-security"
+                ),
+                "fixable": False,
+            })
 
     # 2. Corrupt checkpoints?
     fmt_dir = save_dir / fmt

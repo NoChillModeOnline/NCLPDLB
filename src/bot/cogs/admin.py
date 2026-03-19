@@ -175,13 +175,19 @@ class AdminCog(commands.Cog, name="Admin"):
     # ── /admin-train ───────────────────────────────────────────
     @app_commands.command(
         name="admin-train",
-        description="Train the AI bot for a battle format (requires local Showdown server)",
+        description="Train the AI bot for a battle format",
     )
     @app_commands.describe(
         format="Format to train (e.g. gen9randombattle)",
         timesteps="Training steps — higher = stronger but slower (default: 500000)",
         force="Re-train even if a model already exists",
+        server="Connection mode (default: localhost)",
     )
+    @app_commands.choices(server=[
+        app_commands.Choice(name="localhost (local Node.js server)", value="localhost"),
+        app_commands.Choice(name="showdown (public sim3.psim.us)",   value="showdown"),
+        app_commands.Choice(name="browser (Playwright automation)",   value="browser"),
+    ])
     @is_commissioner()
     async def admin_train(
         self,
@@ -189,6 +195,7 @@ class AdminCog(commands.Cog, name="Admin"):
         format: str,
         timesteps: int = 500_000,
         force: bool = False,
+        server: str = "localhost",
     ) -> None:
         await interaction.response.defer(thinking=True)
 
@@ -214,7 +221,7 @@ class AdminCog(commands.Cog, name="Admin"):
         )
 
         asyncio.create_task(
-            _run_training(interaction, format, timesteps, force, channel_msg=status_msg)
+            _run_training(interaction, format, timesteps, force, channel_msg=status_msg, server=server)
         )
 
     @admin_train.autocomplete("format")
@@ -234,18 +241,25 @@ class AdminCog(commands.Cog, name="Admin"):
     # ── /admin-train-all ───────────────────────────────────────
     @app_commands.command(
         name="admin-train-all",
-        description="Train AI models for all formats sequentially (requires local Showdown server)",
+        description="Train AI models for all formats sequentially",
     )
     @app_commands.describe(
         timesteps="Training steps per format (default: 500000)",
         skip_existing="Skip formats that already have a final_model.zip (default: True)",
+        server="Connection mode (default: localhost)",
     )
+    @app_commands.choices(server=[
+        app_commands.Choice(name="localhost (local Node.js server)", value="localhost"),
+        app_commands.Choice(name="showdown (public sim3.psim.us)",   value="showdown"),
+        app_commands.Choice(name="browser (Playwright automation)",   value="browser"),
+    ])
     @is_commissioner()
     async def admin_train_all(
         self,
         interaction: discord.Interaction,
         timesteps: int = 500_000,
         skip_existing: bool = True,
+        server: str = "localhost",
     ) -> None:
         await interaction.response.defer(thinking=True)
 
@@ -265,8 +279,45 @@ class AdminCog(commands.Cog, name="Admin"):
         )
 
         asyncio.create_task(
-            _run_training_all(interaction, timesteps, force=not skip_existing, channel_msg=status_msg)
+            _run_training_all(
+                interaction, timesteps, force=not skip_existing,
+                channel_msg=status_msg, server=server,
+            )
         )
+
+    # ── /admin-showdown-check ──────────────────────────────────
+    @app_commands.command(
+        name="admin-showdown-check",
+        description="Check if the local Showdown server is running and open it in browser",
+    )
+    @is_commissioner()
+    async def admin_showdown_check(self, interaction: discord.Interaction) -> None:
+        import socket
+        import webbrowser
+
+        await interaction.response.defer(thinking=True, ephemeral=True)
+
+        host, port = "127.0.0.1", 8000
+        reachable = False
+        try:
+            with socket.create_connection((host, port), timeout=3):
+                reachable = True
+        except OSError:
+            pass
+
+        if reachable:
+            webbrowser.open(f"http://localhost:{port}")
+            await interaction.followup.send(
+                f"✅ Showdown server is reachable at `localhost:{port}` — opening in browser.",
+                ephemeral=True,
+            )
+        else:
+            await interaction.followup.send(
+                f"❌ Showdown server is **NOT** running on port `{port}`.\n"
+                "Start it with:\n"
+                "```\ncd pokemon-showdown && node pokemon-showdown start --no-security\n```",
+                ephemeral=True,
+            )
 
 
 class ConfirmResetView(discord.ui.View):
@@ -293,6 +344,7 @@ async def _run_training(
     timesteps: int,
     force: bool,
     channel_msg=None,
+    server: str = "localhost",
 ) -> None:
     """
     Background task: train a single format with preflight, progress bar, and auto-fix.
@@ -313,7 +365,7 @@ async def _run_training(
     save_dir = project_root / "data" / "ml" / "policy"
 
     # ── 1. Preflight ────────────────────────────────────────────────
-    issues = preflight_check(fmt, save_dir, python_exe=sys.executable)
+    issues = preflight_check(fmt, save_dir, python_exe=sys.executable, server_mode=server)
     blocking = [i for i in issues if not i["fixable"]]
     fixable  = [i for i in issues if i["fixable"]]
 
@@ -373,6 +425,8 @@ async def _run_training(
         ]
         if force:
             cmd.append("--force")
+        if server != "localhost":
+            cmd += ["--server", server]
 
         try:
             proc = await asyncio.create_subprocess_exec(
@@ -499,6 +553,7 @@ async def _run_training_all(
     timesteps: int,
     force: bool,
     channel_msg=None,
+    server: str = "localhost",
 ) -> None:
     """
     Background task: train all formats sequentially.
@@ -521,8 +576,10 @@ async def _run_training_all(
     skipped_count = len(TRAINING_MAP) - len(formats_to_run)
 
     # Check Showdown server once before starting
-    issues = preflight_check(formats_to_run[0] if formats_to_run else "gen9randombattle",
-                             save_dir, sys.executable)
+    issues = preflight_check(
+        formats_to_run[0] if formats_to_run else "gen9randombattle",
+        save_dir, sys.executable, server_mode=server,
+    )
     blocking = [i for i in issues if not i["fixable"]]
     if blocking:
         block_lines = "\n".join(f"• {e['description']}" for e in blocking)
@@ -567,6 +624,8 @@ async def _run_training_all(
         ]
         if force:
             cmd.append("--force")
+        if server != "localhost":
+            cmd += ["--server", server]
 
         collected: list[str] = []
         latest_steps = 0
