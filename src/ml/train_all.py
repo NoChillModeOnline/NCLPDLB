@@ -99,14 +99,15 @@ TRAINING_MAP: dict[str, tuple[str | None, str | None]] = {
     "gen9vgc2026regibo3"     : ("gen9vgc2026regibo3",     "gen9vgc2026regi"),
 }
 
-DEFAULT_TIMESTEPS  = 500_000
-DEFAULT_SWAP_EVERY = 50_000
-DEFAULT_SAVE_DIR   = "data/ml/policy"
+DEFAULT_TIMESTEPS   = 500_000
+DEFAULT_SWAP_EVERY  = 50_000
+DEFAULT_SAVE_DIR    = "data/ml/policy"
+DEFAULT_RESULTS_DIR = "src/ml/models/results"
 
 
-def _model_done(spar_fmt: str, save_dir: Path) -> bool:
-    """Return True if this format already has a completed final_model.zip."""
-    return (save_dir / spar_fmt / "final_model.zip").exists()
+def _model_done(spar_fmt: str, results_dir: Path) -> bool:
+    """Return True if a dated final model exists for this format in results_dir."""
+    return any(results_dir.glob(f"{spar_fmt}_*.zip"))
 
 
 def _resume_checkpoint(spar_fmt: str, save_dir: Path) -> Path | None:
@@ -122,6 +123,7 @@ def train_format(
     total_timesteps: int,
     swap_every: int,
     save_dir: Path,
+    results_dir: Path | None = None,
 ) -> bool:
     """
     Train a policy for `spar_fmt` using `train_fmt` as the actual battle format.
@@ -145,12 +147,14 @@ def train_format(
 
     # ── Spawn fresh subprocess for each training run ────────────────
     project_root = Path(__file__).parents[2]
+    _results_dir = results_dir if results_dir is not None else Path(DEFAULT_RESULTS_DIR)
     cmd = [
         sys.executable, "-m", "src.ml.train_policy",
-        "--format",     train_fmt,
-        "--timesteps",  str(total_timesteps),
-        "--swap-every", str(swap_every),
-        "--save-dir",   str(save_dir),
+        "--format",      train_fmt,
+        "--timesteps",   str(total_timesteps),
+        "--swap-every",  str(swap_every),
+        "--save-dir",    str(save_dir),
+        "--results-dir", str(_results_dir),
     ]
     if team_fmt:
         cmd += ["--team-format", team_fmt]
@@ -187,8 +191,11 @@ def run(
     total_timesteps: int,
     swap_every: int,
     save_dir: Path,
+    results_dir: Path | None = None,
     force: bool = False,
 ) -> None:
+    _results_dir = results_dir if results_dir is not None else Path(DEFAULT_RESULTS_DIR)
+    _results_dir.mkdir(parents=True, exist_ok=True)
     results: dict[str, str] = {}
 
     for spar_fmt in formats:
@@ -207,7 +214,7 @@ def run(
             results[spar_fmt] = "skipped"
             continue
 
-        if not force and _model_done(spar_fmt, save_dir):
+        if not force and _model_done(spar_fmt, _results_dir):
             log.info(f"[train_all] {spar_fmt}: already trained, skipping")
             results[spar_fmt] = "already_done"
             continue
@@ -227,6 +234,7 @@ def run(
             total_timesteps=total_timesteps,
             swap_every=swap_every,
             save_dir=save_dir,
+            results_dir=_results_dir,
         )
         elapsed = time.time() - t0
         results[spar_fmt] = "done" if ok else "failed"
@@ -270,9 +278,14 @@ def _parse_args() -> argparse.Namespace:
         help=f"Root checkpoint directory (default: {DEFAULT_SAVE_DIR})",
     )
     ap.add_argument(
+        "--results-dir",
+        default=DEFAULT_RESULTS_DIR,
+        help=f"Directory for final dated models (default: {DEFAULT_RESULTS_DIR})",
+    )
+    ap.add_argument(
         "--force",
         action="store_true",
-        help="Re-train even if final_model.zip already exists",
+        help="Re-train even if a dated model already exists in results-dir",
     )
     return ap.parse_args()
 
@@ -290,5 +303,6 @@ if __name__ == "__main__":
         total_timesteps=args.timesteps,
         swap_every=args.swap_every,
         save_dir=Path(args.save_dir),
+        results_dir=Path(args.results_dir),
         force=args.force,
     )

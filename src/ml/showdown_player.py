@@ -301,19 +301,31 @@ def _get_opponent_name(battle: AbstractBattle) -> str:
 
 # ── Model selector ────────────────────────────────────────────────────────────
 
-def best_model_for_format(fmt: str, save_dir: str = "data/ml/policy") -> Path | None:
+def best_model_for_format(
+    fmt: str,
+    save_dir: str = "data/ml/policy",
+    results_dir: str = "src/ml/models/results",
+) -> Path | None:
     """
     Return the path to the best available model for a given format.
 
-    Preference order: final_model.zip → latest.zip → any ppo_ckpt_*.zip
+    Preference order:
+      1. Most recent dated model in results_dir  ({fmt}_YYYY-MM-DD.zip)
+      2. latest.zip in save_dir  (in-progress checkpoint)
+      3. Newest ppo_ckpt_*.zip in save_dir
     """
-    base = Path(save_dir) / fmt
-    for candidate in ["final_model.zip", "latest.zip"]:
-        p = base / candidate
-        if p.exists():
-            return p
+    # 1. Dated final models — pick most recent by filename sort
+    results = sorted(Path(results_dir).glob(f"{fmt}_*.zip"))
+    if results:
+        return results[-1]
 
-    # Fall back to newest checkpoint
+    # 2. In-progress checkpoint
+    base = Path(save_dir) / fmt
+    latest = base / "latest.zip"
+    if latest.exists():
+        return latest
+
+    # 3. Newest PPO checkpoint
     ckpts = sorted(base.glob("ppo_ckpt_*.zip"))
     if ckpts:
         return ckpts[-1]

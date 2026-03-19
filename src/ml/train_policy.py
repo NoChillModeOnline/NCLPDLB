@@ -37,6 +37,7 @@ import argparse
 import logging
 import shutil
 import socket
+from datetime import datetime
 from pathlib import Path
 from typing import Any
 
@@ -89,24 +90,32 @@ def _check_showdown_server() -> None:
         )
 
 
-DEFAULT_FORMAT     = "gen9randombattle"
-DEFAULT_TIMESTEPS  = 500_000
-DEFAULT_SWAP_EVERY = 50_000          # steps between opponent model swaps
-DEFAULT_SAVE_DIR   = "data/ml/policy"
+DEFAULT_FORMAT      = "gen9randombattle"
+DEFAULT_TIMESTEPS   = 500_000
+DEFAULT_SWAP_EVERY  = 50_000          # steps between opponent model swaps
+DEFAULT_SAVE_DIR    = "data/ml/policy"
+DEFAULT_RESULTS_DIR = "src/ml/models/results"
 
 # Formats that use the doubles environment
 DOUBLES_FORMATS = {
+    # Smogon Doubles
     "gen9doublesou",
     "gen9randomdoublesbattle",
     "gen9doublesubers",
     "gen9doublesuu",
-    "gen9vgc2026regi",
+    "gen9doublesnu",
+    # VGC 2025
+    "gen9vgc2025regg",
+    "gen9vgc2025regh",
+    "gen9vgc2025regi",
+    "gen9vgc2025reggbo3",
+    "gen9vgc2025reghbo3",
+    "gen9vgc2025regibo3",
+    # VGC 2026
     "gen9vgc2026regf",
+    "gen9vgc2026regi",
     "gen9vgc2026regfbo3",
     "gen9vgc2026regibo3",
-    "gen9vgc2025regi",
-    "gen9vgc2025regf",
-    "gen9vgc2025regg",
 }
 
 PPO_HYPERPARAMS: dict[str, Any] = {
@@ -226,6 +235,7 @@ def train(
     total_timesteps: int,
     swap_every: int,
     save_dir: Path,
+    results_dir: Path | None = None,
     resume: str | None = None,
     team_format: str | None = None,
 ) -> Path:
@@ -236,13 +246,16 @@ def train(
         fmt: The Showdown battle format string (e.g. "gen9ou").
         total_timesteps: Total number of environment steps to train for.
         swap_every: How often (in steps) to swap the self-play opponent.
-        save_dir: Root directory where checkpoints will be saved.
+        save_dir: Root directory where in-progress checkpoints are saved.
+        results_dir: Directory where the final dated model is saved.
+                     Defaults to src/ml/models/results/.
         resume: Path to a saved checkpoint to resume training from.
         team_format: If set, load teams from FORMAT_TEAMS[team_format] and use
                      a RotatingTeambuilder (for formats that require custom teams).
 
     Returns the path to the final saved model zip.
     """
+    start_date = datetime.now().strftime("%Y-%m-%d")
     _check_showdown_server()
 
     if not POKE_ENV_AVAILABLE:
@@ -359,7 +372,10 @@ def train(
     except KeyboardInterrupt:
         log.info("Training interrupted by user.")
 
-    final_path = fmt_save_dir / "final_model.zip"
+    # ── Save final model to results dir with date-stamped name ─────
+    _results_dir = results_dir if results_dir is not None else Path(DEFAULT_RESULTS_DIR)
+    _results_dir.mkdir(parents=True, exist_ok=True)
+    final_path = _results_dir / f"{fmt}_{start_date}.zip"
     model.save(str(final_path))
     print(f"\nFinal model saved to {final_path}")
 
@@ -478,6 +494,11 @@ def _parse_args() -> argparse.Namespace:
         help="Number of evaluation battles (default: 100)",
     )
     ap.add_argument(
+        "--results-dir",
+        default=DEFAULT_RESULTS_DIR,
+        help=f"Directory where final dated models are saved (default: {DEFAULT_RESULTS_DIR})",
+    )
+    ap.add_argument(
         "--team-format",
         default=None,
         metavar="FORMAT",
@@ -508,6 +529,7 @@ if __name__ == "__main__":
             total_timesteps=args.timesteps,
             swap_every=args.swap_every,
             save_dir=Path(args.save_dir),
+            results_dir=Path(args.results_dir),
             resume=args.resume,
             team_format=args.team_format,
         )
