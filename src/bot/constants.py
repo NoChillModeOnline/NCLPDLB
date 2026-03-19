@@ -25,6 +25,8 @@ SUPPORTED_FORMATS: dict[str, str] = {
     "gen9vgc2024regh": "VGC 2024 Reg H",
     "gen9vgc2024reggregf": "VGC 2024 Reg G+F (Reg F legacy)",
     "gen9vgc2025regg": "VGC 2025 Reg G",
+    "gen9vgc2026regf": "VGC 2026 Reg F",
+    "gen9vgc2026regi": "VGC 2026 Reg I",
     # Draft League
     "draftleague": "Draft League",
 }
