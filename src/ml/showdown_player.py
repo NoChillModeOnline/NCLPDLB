@@ -314,10 +314,13 @@ def best_model_for_format(
       2. latest.zip in save_dir  (in-progress checkpoint)
       3. Newest ppo_ckpt_*.zip in save_dir
     """
-    # 1. Dated final models — pick most recent by filename sort
-    results = sorted(Path(results_dir).glob(f"{fmt}_*.zip"))
-    if results:
-        return results[-1]
+    # 1. Dated final models — check per-format subdir first, then flat root
+    subdir_results = sorted((Path(results_dir) / fmt).glob(f"{fmt}_*.zip"))
+    if subdir_results:
+        return subdir_results[-1]
+    flat_results = sorted(Path(results_dir).glob(f"{fmt}_*.zip"))
+    if flat_results:
+        return flat_results[-1]
 
     # 2. In-progress checkpoint
     base = Path(save_dir) / fmt
