@@ -472,7 +472,8 @@ def parse_replay_json(data: dict[str, Any]) -> BattleRecord:
     saved by the scraper) into a BattleRecord.
     """
     replay_id = data.get("id", "unknown")
-    fmt       = data.get("format", "unknown")
+    # Prefer 'formatid' (canonical key e.g. 'gen9vgc2024regh') over 'format' (human-readable '[Gen 9] VGC 2024 Reg H')
+    fmt       = data.get("formatid") or data.get("format", "unknown")
     rating    = int(data.get("rating", 0) or 0)
     log_text  = data.get("log", "")
     return parse_log(log_text, replay_id=replay_id, format=fmt, rating=rating)
