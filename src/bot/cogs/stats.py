@@ -10,7 +10,6 @@ from discord import app_commands
 from discord.ext import commands
 
 from src.data.pokeapi import pokemon_db
-from src.ml.showdown_player import best_model_for_format
 from src.services.analytics_service import AnalyticsService
 from src.services.battle_sim import BattleSimService
 from src.services.elo_service import EloService
@@ -336,6 +335,7 @@ class StatsCog(commands.Cog, name="Stats"):
         fmt = format if format else "gen9randombattle"
 
         # Check if a trained model is available for this format
+        from src.ml.showdown_player import best_model_for_format
         model_path = best_model_for_format(fmt)
 
         if model_path is None:

@@ -29,7 +29,11 @@ import logging
 from typing import Any
 
 import numpy as np
-from gymnasium.spaces import Box
+
+try:
+    from gymnasium.spaces import Box
+except ImportError:
+    Box = None  # type: ignore
 
 try:
     from poke_env.battle import AbstractBattle, Field, Move, Pokemon, Status, Weather
