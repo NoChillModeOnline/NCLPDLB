@@ -13,6 +13,8 @@ from src.services.notification_service import NotificationService
 def make_service():
     """Create a NotificationService with a mocked bot."""
     bot = AsyncMock(spec=discord.Client)
+    # get_user (sync cache lookup) returns None so tests fall through to fetch_user
+    bot.get_user = MagicMock(return_value=None)
     svc = NotificationService(bot)
     return svc, bot
 
