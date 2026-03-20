@@ -39,10 +39,10 @@ jobs:
             timesteps: 100000
           - format: gen9vgc2026regi
             team_format: gen9vgc2026regi
-            timesteps: 50000
+            timesteps: 15000
           - format: gen9vgc2026regf
             team_format: gen9vgc2026regf
-            timesteps: 50000
+            timesteps: 15000
           - format: gen9randomdoublesbattle
             team_format: ""
             timesteps: 50000
@@ -75,10 +75,10 @@ jobs:
             timesteps: 50000
           - format: gen9vgc2026regfbo3
             team_format: gen9vgc2026regfbo3
-            timesteps: 50000
+            timesteps: 10000
           - format: gen9vgc2026regibo3
             team_format: gen9vgc2026regibo3
-            timesteps: 50000
+            timesteps: 10000
 
     steps:
       - name: Checkout
@@ -109,8 +109,8 @@ jobs:
           cd /tmp/showdown
           echo "--- Installing Showdown dependencies ---"
           npm install
-          echo "--- Patching Showdown config (disable OTS for VGC formats) ---"
-          node -e "require('fs').writeFileSync('/tmp/showdown/config/config.js', [\"'use strict';\", 'exports.customFormats = {', \"  'gen9vgc2026regi':    { openTeamSheets: false },\", \"  'gen9vgc2026regf':    { openTeamSheets: false },\", \"  'gen9vgc2026regibo3': { openTeamSheets: false },\", \"  'gen9vgc2026regfbo3': { openTeamSheets: false },\", '};', ''].join('\\n'));"
+          echo "--- Patching Showdown config (disable OTS for VGC; bypass banlist for tier formats) ---"
+          node -e "require('fs').writeFileSync('/tmp/showdown/config/config.js', [\"'use strict';\", 'exports.customFormats = {', \"  'gen9vgc2026regi':    { openTeamSheets: false },\", \"  'gen9vgc2026regf':    { openTeamSheets: false },\", \"  'gen9vgc2026regibo3': { openTeamSheets: false },\", \"  'gen9vgc2026regfbo3': { openTeamSheets: false },\", \"  'gen9ubers':          { anythinggoes: true },\", \"  'gen9uu':             { anythinggoes: true },\", \"  'gen9ru':             { anythinggoes: true },\", \"  'gen9nu':             { anythinggoes: true },\", \"  'gen9pu':             { anythinggoes: true },\", \"  'gen9zu':             { anythinggoes: true },\", \"  'gen9lc':             { anythinggoes: true },\", \"  'gen9doublesubers':   { anythinggoes: true },\", \"  'gen9doublesuu':      { anythinggoes: true },\", '};', ''].join('\\n'));"
           echo "--- Starting Showdown server ---"
           node pokemon-showdown start --no-security --max-old-space-size=3000 > /tmp/showdown.log 2>&1 &
           SHOWDOWN_PID=$!
@@ -123,7 +123,7 @@ jobs:
           sleep 1
 
       - name: Train ${{ matrix.format }}
-        timeout-minutes: 60
+        timeout-minutes: 80
         run: |
           ARGS="--format ${{ matrix.format }} --timesteps ${{ matrix.timesteps }} --save-dir data/ml/policy"
           if [ -n "${{ matrix.team_format }}" ]; then
