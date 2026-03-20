@@ -26,6 +26,7 @@ class Settings(BaseSettings):
     discord_guild_id: str | None = None
     bot_name: str = "DraftBot"           # Display name shown in presence and embeds
     bot_status: str = "Pokemon Draft League"  # Activity text shown under bot name
+    sync_commands_on_startup: bool = False   # Set SYNC_COMMANDS_ON_STARTUP=true in .env to force sync
 
     # Google Sheets
     google_sheets_credentials_file: Path = PROJECT_ROOT / "credentials.json"
