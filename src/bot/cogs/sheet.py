@@ -318,11 +318,16 @@ class SheetCog(commands.Cog, name="Sheet"):
         self, interaction: discord.Interaction, error: app_commands.AppCommandError
     ) -> None:
         if isinstance(error, app_commands.MissingPermissions):
-            await interaction.response.send_message(
-                "❌ You need **Manage Server** permission to use sheet commands.", ephemeral=True
-            )
+            msg = "❌ You need **Manage Server** permission to use sheet commands."
         else:
-            await interaction.response.send_message(f"❌ Error: {error}", ephemeral=True)
+            msg = f"❌ Error: {error}"
+        try:
+            if not interaction.response.is_done():
+                await interaction.response.send_message(msg, ephemeral=True)
+            else:
+                await interaction.followup.send(msg, ephemeral=True)
+        except discord.NotFound:
+            pass
 
 
 async def setup(bot: commands.Bot) -> None:

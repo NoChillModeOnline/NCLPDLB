@@ -94,16 +94,26 @@ class AdminCog(commands.Cog, name="Admin"):
         await interaction.response.defer(thinking=True, ephemeral=True)
         use_guild = (scope is None) or (scope.value == "guild")
 
-        if use_guild and interaction.guild:
-            synced = await interaction.client.tree.sync(guild=interaction.guild)
+        try:
+            if use_guild and interaction.guild:
+                # copy_global_to ensures global commands are in the guild namespace before sync
+                interaction.client.tree.copy_global_to(guild=interaction.guild)
+                synced = await interaction.client.tree.sync(guild=interaction.guild)
+                await interaction.followup.send(
+                    f"✅ Synced **{len(synced)} command(s)** to this server (instant).",
+                    ephemeral=True,
+                )
+            else:
+                synced = await interaction.client.tree.sync()
+                await interaction.followup.send(
+                    f"✅ Synced **{len(synced)} command(s)** globally. May take up to 1 hour to appear.",
+                    ephemeral=True,
+                )
+        except discord.HTTPException as exc:
+            retry = getattr(exc, "retry_after", None)
+            hint = f" Retry after {retry:.0f}s." if retry else ""
             await interaction.followup.send(
-                f"✅ Synced **{len(synced)} command(s)** to this server (instant).",
-                ephemeral=True,
-            )
-        else:
-            synced = await interaction.client.tree.sync()
-            await interaction.followup.send(
-                f"✅ Synced **{len(synced)} command(s)** globally. May take up to 1 hour to appear.",
+                f"❌ Sync failed (HTTP {exc.status}).{hint}\n`{exc.text}`",
                 ephemeral=True,
             )
 
@@ -155,11 +165,16 @@ class AdminCog(commands.Cog, name="Admin"):
         # ── 3. Re-sync commands ─────────────────────────────────
         try:
             if interaction.guild:
+                interaction.client.tree.copy_global_to(guild=interaction.guild)
                 synced = await interaction.client.tree.sync(guild=interaction.guild)
                 lines.append(f"✅ **Commands synced** — {len(synced)} command(s) to this server")
             else:
                 synced = await interaction.client.tree.sync()
                 lines.append(f"✅ **Commands synced** — {len(synced)} command(s) globally")
+        except discord.HTTPException as exc:
+            retry = getattr(exc, "retry_after", None)
+            hint = f" Retry after {retry:.0f}s." if retry else ""
+            lines.append(f"❌ **Command sync failed** (HTTP {exc.status}).{hint} `{exc.text}`")
         except Exception as exc:
             lines.append(f"❌ **Command sync failed**: `{exc}`")
 
@@ -553,7 +568,7 @@ async def _run_training_all(
 
     Sends a per-format progress DM, then a final summary.
     """
-    from src.ml.training_doctor import preflight_check
+    from src.ml.training_doctor import parse_timestep_progress, preflight_check
 
     project_root = Path(__file__).parents[3]
     save_dir = project_root / "data" / "ml" / "policy"
@@ -640,7 +655,6 @@ async def _run_training_all(
 
             assert proc.stdout is not None
             async for raw_line in proc.stdout:
-                from src.ml.training_doctor import parse_timestep_progress
                 line = raw_line.decode(errors="replace").rstrip()
                 collected.append(line)
                 steps = parse_timestep_progress(line)
