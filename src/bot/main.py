@@ -95,19 +95,20 @@ class DraftLeagueBot(commands.Bot):
         else:
             log.warning("discord_commands.csv not found at %s — skipping drift check.", csv_path)
 
-        # Sync slash commands only when explicitly requested (avoids Discord rate limits)
-        # Set SYNC_COMMANDS_ON_STARTUP=true in .env to force sync, or use /admin-sync
-        if settings.sync_commands_on_startup:
-            if settings.discord_guild_id:
-                guild = discord.Object(id=int(settings.discord_guild_id))
-                self.tree.copy_global_to(guild=guild)
-                await self.tree.sync(guild=guild)
-                log.info(f"Slash commands synced to test guild {settings.discord_guild_id}")
-            else:
-                await self.tree.sync()
-                log.info("Slash commands synced globally")
+        # Guild sync is always safe (instant, no global rate-limit concerns).
+        # If DISCORD_GUILD_ID is set, sync to that guild on every startup so new commands
+        # appear immediately after code changes. For production (no guild ID), only sync
+        # when SYNC_COMMANDS_ON_STARTUP=true to avoid the 1-hour global propagation delay.
+        if settings.discord_guild_id:
+            guild = discord.Object(id=int(settings.discord_guild_id))
+            self.tree.copy_global_to(guild=guild)
+            await self.tree.sync(guild=guild)
+            log.info(f"Slash commands synced to guild {settings.discord_guild_id}")
+        elif settings.sync_commands_on_startup:
+            await self.tree.sync()
+            log.info("Slash commands synced globally")
         else:
-            log.info("Skipping command sync on startup — use /admin-sync or set SYNC_COMMANDS_ON_STARTUP=true")
+            log.info("Skipping command sync — set DISCORD_GUILD_ID for auto-sync or use /admin-sync")
 
     async def on_ready(self) -> None:
         log.info(f"Bot ready! Logged in as {self.user} (ID: {self.user.id})")

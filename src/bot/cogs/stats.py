@@ -433,10 +433,13 @@ class StatsCog(commands.Cog, name="Stats"):
     @spar.error
     async def spar_error(self, interaction: discord.Interaction, error: app_commands.AppCommandError) -> None:
         msg = str(error)
-        if not interaction.response.is_done():
-            await interaction.response.send_message(f"Spar error: {msg}", ephemeral=True)
-        else:
-            await interaction.followup.send(f"Spar error: {msg}", ephemeral=True)
+        try:
+            if not interaction.response.is_done():
+                await interaction.response.send_message(f"Spar error: {msg}", ephemeral=True)
+            else:
+                await interaction.followup.send(f"Spar error: {msg}", ephemeral=True)
+        except discord.NotFound:
+            log.warning("[/spar] Interaction expired before error could be reported: %s", msg)
 
 
 async def _run_spar_challenge(

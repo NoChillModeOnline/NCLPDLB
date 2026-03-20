@@ -12,6 +12,7 @@ from discord import app_commands
 from discord.ext import commands
 
 from src.ml.showdown_modes import MODE_LOCALHOST
+from src.ml.train_all import TRAINING_MAP
 from src.services.draft_service import DraftService
 
 log = logging.getLogger(__name__)
@@ -201,7 +202,6 @@ class AdminCog(commands.Cog, name="Admin"):
     ) -> None:
         await interaction.response.defer(thinking=True)
 
-        from src.ml.train_all import TRAINING_MAP
         if format not in TRAINING_MAP:
             await interaction.followup.send(
                 f"Unknown format `{format}`. Check `/spar` autocomplete for valid formats.",
@@ -232,7 +232,6 @@ class AdminCog(commands.Cog, name="Admin"):
         interaction: discord.Interaction,
         current: str,
     ) -> list[app_commands.Choice[str]]:
-        from src.ml.train_all import TRAINING_MAP
         needle = current.lower()
         return [
             app_commands.Choice(name=fmt, value=fmt)
@@ -264,8 +263,6 @@ class AdminCog(commands.Cog, name="Admin"):
         server: str = "localhost",
     ) -> None:
         await interaction.response.defer(thinking=True)
-
-        from src.ml.train_all import TRAINING_MAP
 
         total = len([f for f, e in TRAINING_MAP.items() if e[0] is not None])
         results_dir = Path("src/ml/models/results")
@@ -556,7 +553,6 @@ async def _run_training_all(
 
     Sends a per-format progress DM, then a final summary.
     """
-    from src.ml.train_all import TRAINING_MAP
     from src.ml.training_doctor import preflight_check
 
     project_root = Path(__file__).parents[3]
