@@ -58,6 +58,7 @@ htmlcov/
 # Bot specific
 bot_data/
 cache/
+.discord_sync_hash
 
 # Database
 *.db

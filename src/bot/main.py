@@ -5,6 +5,8 @@ Cross-platform compatible (Windows, macOS, Linux).
 """
 import asyncio
 import csv
+import hashlib
+import json
 import logging
 import sys
 from pathlib import Path
@@ -30,6 +32,24 @@ logging.basicConfig(
     ],
 )
 log = logging.getLogger("pokemon_draft_bot")
+
+
+_SYNC_HASH_FILE = Path(__file__).parent.parent.parent / ".discord_sync_hash"
+
+
+def _command_fingerprint(commands) -> str:
+    """Stable hash of command names + descriptions + parameter names.
+
+    Used to skip Discord sync when nothing has changed between restarts,
+    avoiding the guild-commands rate limit (429 / 355 s retry).
+    """
+    parts = []
+    for cmd in sorted(commands, key=lambda c: c.name):
+        entry: dict = {"n": cmd.name, "d": getattr(cmd, "description", "")}
+        if hasattr(cmd, "parameters"):
+            entry["p"] = sorted(p.name for p in cmd.parameters)
+        parts.append(entry)
+    return hashlib.sha256(json.dumps(parts, sort_keys=True).encode()).hexdigest()[:16]
 
 
 def drift_check_commands(csv_names: set[str], registered_names: set[str]) -> set[str]:
@@ -95,18 +115,29 @@ class DraftLeagueBot(commands.Bot):
         else:
             log.warning("discord_commands.csv not found at %s — skipping drift check.", csv_path)
 
-        # Guild sync is always safe (instant, no global rate-limit concerns).
-        # If DISCORD_GUILD_ID is set, sync to that guild on every startup so new commands
-        # appear immediately after code changes. For production (no guild ID), only sync
-        # when SYNC_COMMANDS_ON_STARTUP=true to avoid the 1-hour global propagation delay.
+        # Hash-gated sync: only call the Discord API when commands actually changed.
+        # The guild-commands PUT endpoint is rate-limited (~2–5 calls/10 min per app).
+        # Syncing on every restart burns through that budget; the hash avoids it.
+        current_hash = _command_fingerprint(self.tree.get_commands())
+        stored_hash = _SYNC_HASH_FILE.read_text().strip() if _SYNC_HASH_FILE.exists() else ""
+        commands_changed = current_hash != stored_hash
+
         if settings.discord_guild_id:
             guild = discord.Object(id=int(settings.discord_guild_id))
             self.tree.copy_global_to(guild=guild)
-            await self.tree.sync(guild=guild)
-            log.info(f"Slash commands synced to guild {settings.discord_guild_id}")
+            if commands_changed:
+                await self.tree.sync(guild=guild)
+                _SYNC_HASH_FILE.write_text(current_hash)
+                log.info("Slash commands synced to guild %s (commands changed)", settings.discord_guild_id)
+            else:
+                log.info("Slash commands unchanged — skipping sync (hash: %s)", current_hash)
         elif settings.sync_commands_on_startup:
-            await self.tree.sync()
-            log.info("Slash commands synced globally")
+            if commands_changed:
+                await self.tree.sync()
+                _SYNC_HASH_FILE.write_text(current_hash)
+                log.info("Slash commands synced globally (commands changed)")
+            else:
+                log.info("Slash commands unchanged — skipping global sync (hash: %s)", current_hash)
         else:
             log.info("Skipping command sync — set DISCORD_GUILD_ID for auto-sync or use /admin-sync")
 
