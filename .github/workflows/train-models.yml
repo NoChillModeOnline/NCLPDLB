@@ -109,8 +109,25 @@ jobs:
           cd /tmp/showdown
           echo "--- Installing Showdown dependencies ---"
           npm install
-          echo "--- Patching Showdown config (disable OTS for VGC; bypass banlist for tier formats) ---"
-          node -e "require('fs').writeFileSync('/tmp/showdown/config/config.js', [\"'use strict';\", 'exports.customFormats = {', \"  'gen9vgc2026regi':    { openTeamSheets: false },\", \"  'gen9vgc2026regf':    { openTeamSheets: false },\", \"  'gen9vgc2026regibo3': { openTeamSheets: false },\", \"  'gen9vgc2026regfbo3': { openTeamSheets: false },\", \"  'gen9ubers':          { anythinggoes: true },\", \"  'gen9uu':             { anythinggoes: true },\", \"  'gen9ru':             { anythinggoes: true },\", \"  'gen9nu':             { anythinggoes: true },\", \"  'gen9pu':             { anythinggoes: true },\", \"  'gen9zu':             { anythinggoes: true },\", \"  'gen9lc':             { anythinggoes: true },\", \"  'gen9doublesubers':   { anythinggoes: true },\", \"  'gen9doublesuu':      { anythinggoes: true },\", '};', ''].join('\\n'));"
+          echo "--- Patching Showdown config (open OTS for VGC; remove banlist/clauses for tier formats) ---"
+          cat > /tmp/showdown/config/config.js << 'SHOWDOWN_CFG'
+          'use strict';
+          exports.customFormats = {
+            'gen9vgc2026regi':    { openTeamSheets: true },
+            'gen9vgc2026regf':    { openTeamSheets: true },
+            'gen9vgc2026regibo3': { openTeamSheets: true },
+            'gen9vgc2026regfbo3': { openTeamSheets: true },
+            'gen9ubers':          { banlist: [], ruleset: ['Obtainable', 'Team Preview', 'HP Percentage Mod', 'Cancel Mod', 'Endless Battle Clause', 'Sleep Clause Mod'] },
+            'gen9uu':             { banlist: [], ruleset: ['Obtainable', 'Team Preview', 'HP Percentage Mod', 'Cancel Mod', 'Endless Battle Clause', 'Sleep Clause Mod'] },
+            'gen9ru':             { banlist: [], ruleset: ['Obtainable', 'Team Preview', 'HP Percentage Mod', 'Cancel Mod', 'Endless Battle Clause', 'Sleep Clause Mod'] },
+            'gen9nu':             { banlist: [], ruleset: ['Obtainable', 'Team Preview', 'HP Percentage Mod', 'Cancel Mod', 'Endless Battle Clause', 'Sleep Clause Mod'] },
+            'gen9pu':             { banlist: [], ruleset: ['Obtainable', 'Team Preview', 'HP Percentage Mod', 'Cancel Mod', 'Endless Battle Clause', 'Sleep Clause Mod'] },
+            'gen9zu':             { banlist: [], ruleset: ['Obtainable', 'Team Preview', 'HP Percentage Mod', 'Cancel Mod', 'Endless Battle Clause', 'Sleep Clause Mod'] },
+            'gen9lc':             { banlist: [], ruleset: ['Obtainable', 'Team Preview', 'HP Percentage Mod', 'Cancel Mod', 'Endless Battle Clause', 'Sleep Clause Mod'] },
+            'gen9doublesubers':   { banlist: [], ruleset: ['Obtainable', 'Team Preview', 'HP Percentage Mod', 'Cancel Mod', 'Endless Battle Clause', 'Sleep Clause Mod'] },
+            'gen9doublesuu':      { banlist: [], ruleset: ['Obtainable', 'Team Preview', 'HP Percentage Mod', 'Cancel Mod', 'Endless Battle Clause', 'Sleep Clause Mod'] },
+          };
+          SHOWDOWN_CFG
           echo "--- Starting Showdown server ---"
           node pokemon-showdown start --no-security --max-old-space-size=3000 > /tmp/showdown.log 2>&1 &
           SHOWDOWN_PID=$!
