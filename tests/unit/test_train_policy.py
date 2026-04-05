@@ -571,7 +571,6 @@ class TestCurriculumCallbackTypeEff:
 
     def test_should_not_graduate_when_eff_below_threshold(self, tmp_path):
         """70 % wins but mean_type_eff below 1.2 → stays in warmup."""
-        import numpy as np
         cb, _ = self._make_cb(
             tmp_path, min_episodes=10, win_threshold=0.70,
             mean_type_eff_threshold=1.2, min_type_eff_samples=5,
@@ -584,7 +583,6 @@ class TestCurriculumCallbackTypeEff:
 
     def test_should_graduate_when_both_metrics_met(self, tmp_path):
         """70 % wins AND mean_type_eff >= 1.2 → graduates."""
-        import numpy as np
         cb, _ = self._make_cb(
             tmp_path, min_episodes=10, win_threshold=0.70,
             mean_type_eff_threshold=1.2, min_type_eff_samples=5,
@@ -681,3 +679,33 @@ class TestCurriculumCallbackTypeEff:
             cb._on_step()
         assert cb._action_total == 0
         assert cb._action_counts == {}
+
+    def test_exception_in_track_type_eff_silently_ignored(self, tmp_path):
+        """If obs_tensor raises during array conversion, exception is swallowed."""
+        import numpy as np
+        class _BadArray:
+            def __array__(self, dtype=None):
+                raise ValueError("bad array conversion")
+        cb, _ = self._make_cb(tmp_path)
+        cb.locals = {
+            "infos": [],
+            "obs_tensor": _BadArray(),
+            "actions": np.array([6]),
+        }
+        result = cb._on_step()
+        assert result is True
+        assert len(cb._type_eff_window) == 0
+
+    def test_exception_in_check_policy_collapse_silently_ignored(self, tmp_path):
+        """If actions raises during array conversion, exception is swallowed."""
+        class _BadActions:
+            def __array__(self, dtype=None):
+                raise TypeError("bad actions")
+        cb, _ = self._make_cb(tmp_path)
+        cb.locals = {
+            "infos": [],
+            "actions": _BadActions(),
+        }
+        result = cb._on_step()
+        assert result is True
+        assert cb._action_total == 0

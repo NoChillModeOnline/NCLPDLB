@@ -92,3 +92,7 @@ cov*.txt
 pytest_out.txt
 test_results.txt
 discord_commands.csv
+
+# Claude Code worktrees and swarm state (local tooling, not project files)
+.claude/worktrees/
+.swarm/
