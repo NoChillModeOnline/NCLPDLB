@@ -68,6 +68,13 @@ Pokemon Showdown/
 *\ 2.js
 *\ 2.md
 
+# Large generated reports (JetBrains coverage, etc.)
+index.html
+*.html.report
+
+# ML model artifacts (large — use releases or cloud storage)
+src/ml/models/results/
+
 # Misc
 *.bak
 *.tmp
