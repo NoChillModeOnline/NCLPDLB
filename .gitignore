@@ -20,9 +20,10 @@ pokemon_draft.db
 *.db-wal
 *.db-shm
 
-# ML model artifacts
+# ML model artifacts and training data
 src/ml/models/*.pt
 data/ml/
+data/replays/
 
 # Logs
 logs/
@@ -57,6 +58,15 @@ htmlcov/
 
 # Jupyter
 .ipynb_checkpoints/
+
+# Local Showdown server (large external dependency — not tracked)
+Pokemon Showdown/
+
+# macOS duplicate files (created by Finder copy)
+*\ 2.py
+*\ 2.ts
+*\ 2.js
+*\ 2.md
 
 # Misc
 *.bak
